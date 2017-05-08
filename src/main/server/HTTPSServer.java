@@ -37,8 +37,7 @@ public class HTTPSServer {
     private SSLContext createSSLContext(){
         try{
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            // keyStore.load(new FileInputStream("test.jks"),"passphrase".toCharArray());
-            keyStore.load(null,null);
+            keyStore.load(new FileInputStream("test.jks"),"passphrase".toCharArray());
 
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
