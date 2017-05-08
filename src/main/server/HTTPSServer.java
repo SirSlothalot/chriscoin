@@ -10,26 +10,26 @@ import java.security.KeyStore;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-public class HTTPSClient {
-    private String host = "127.0.0.1";
+public class HTTPSServer {
     private int port = 9999;
+    private boolean isServerDone = false;
 
     public static void main(String[] args){
-        HTTPSClient client = new HTTPSClient();
-        client.run();
+        HTTPSServer server = new HTTPSServer();
+        server.run();
     }
 
-    HTTPSClient(){
+    HTTPSServer(){
     }
 
-    HTTPSClient(String host, int port){
-        this.host = host;
+    HTTPSServer(int port){
         this.port = port;
     }
 
@@ -37,7 +37,8 @@ public class HTTPSClient {
     private SSLContext createSSLContext(){
         try{
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream("test.jks"),"passphrase".toCharArray());
+            // keyStore.load(new FileInputStream("test.jks"),"passphrase".toCharArray());
+            keyStore.load(null,null);
 
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
@@ -66,24 +67,29 @@ public class HTTPSClient {
         SSLContext sslContext = this.createSSLContext();
 
         try{
-            // Create socket factory
-            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            // Create server socket factory
+            SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
 
-            // Create socket
-            SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(this.host, this.port);
+            // Create server socket
+            SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(this.port);
 
-            System.out.println("SSL client started");
-            new ClientThread(sslSocket).start();
+            System.out.println("SSL server started");
+            while(!isServerDone){
+                SSLSocket sslSocket = (SSLSocket) sslServerSocket.accept();
+
+                // Start the server thread
+                new ServerThread(sslSocket).start();
+            }
         } catch (Exception ex){
             ex.printStackTrace();
         }
     }
 
-    // Thread handling the socket to server
-    static class ClientThread extends Thread {
+    // Thread handling the socket from client
+    static class ServerThread extends Thread {
         private SSLSocket sslSocket = null;
 
-        ClientThread(SSLSocket sslSocket){
+        ServerThread(SSLSocket sslSocket){
             this.sslSocket = sslSocket;
         }
 
@@ -108,19 +114,18 @@ public class HTTPSClient {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                 PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(outputStream));
 
-                // Write data
-                printWriter.println("Hello server");
-                printWriter.println();
-                printWriter.flush();
-
                 String line = null;
                 while((line = bufferedReader.readLine()) != null){
                     System.out.println("Inut : "+line);
 
-                    if(line.trim().equals("HTTP/1.1 200\r\n")){
+                    if(line.trim().isEmpty()){
                         break;
                     }
                 }
+
+                // Write data
+                printWriter.print("HTTP/1.1 200\r\n");
+                printWriter.flush();
 
                 sslSocket.close();
             } catch (Exception ex) {
