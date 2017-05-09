@@ -1,4 +1,4 @@
-package main.server;
+package main.wallet;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -89,7 +89,8 @@ public class HTTPSClient {
             this.sslSocket = sslSocket;
         }
 
-        public void run(){
+        @Override
+		public void run(){
             sslSocket.setEnabledCipherSuites(sslSocket.getSupportedCipherSuites());
 
             try{

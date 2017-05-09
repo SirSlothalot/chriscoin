@@ -1,4 +1,4 @@
-package main.server;
+package main.wallet;
 
 
 import java.io.FileNotFoundException;
@@ -14,11 +14,11 @@ import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
 public class PemFile {
 	private PemObject pem;
-	
+
 	public PemFile (Key key, String description) {
 		this.pem = new PemObject(description, key.getEncoded());
 	}
-	
+
 	public void write(String filename) throws FileNotFoundException, IOException {
 		JcaPEMWriter pemWriter = new JcaPEMWriter(new OutputStreamWriter(new FileOutputStream(filename)));
 		try {
