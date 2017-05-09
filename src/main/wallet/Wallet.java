@@ -111,6 +111,7 @@ public class Wallet {
 			PublicKey pub = generatePublicKey(factory, pubKeyFileName);
 			
 			System.out.println(priv.toString());
+			System.out.println(pub.toString());
 			
 //			keyStore = KeyStore.getInstance("PKCS8");
 //	        keyStore.load(null);
