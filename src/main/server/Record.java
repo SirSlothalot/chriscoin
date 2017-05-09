@@ -1,3 +1,6 @@
+package main.server;
+
+
 import org.json.simple.JSONObject;
 
 public class Record {

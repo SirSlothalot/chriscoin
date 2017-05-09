@@ -1,5 +1,8 @@
+package main.server;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -151,6 +154,17 @@ public class Wallet {
 	private void initKeyStore() {
 		
 	}
+	
+//	private void pemToPKCS12(String privKeyFile, String pubKeyFile, String password) throws Exception {
+//		//retrieve private key
+//		
+//		FileReader reader = new FileReader(privKeyFile);
+//		PEMReader pem = 
+//		
+//		//retrieve public key
+//		
+//		
+//	}
 	
 	private void initClient(String host, int port) {
 		client = new HTTPSClient(host, port);

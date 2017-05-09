@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src/main/server"/>
+	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="json-simple-1.1.1.jar"/>
-	<classpathentry kind="lib" path="bcprov-jdk15on-1.56.jar"/>
-	<classpathentry kind="lib" path="bcpkix-jdk15on-156.jar"/>
+	<classpathentry kind="lib" path="src/resources/bcpkix-jdk15on-156.jar"/>
+	<classpathentry kind="lib" path="src/resources/bcprov-jdk15on-1.56.jar"/>
+	<classpathentry kind="lib" path="src/resources/json-simple-1.1.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
