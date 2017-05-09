@@ -12,6 +12,7 @@ public class Message {
 
 	private JSONObject message;
 
+	@SuppressWarnings("unchecked")
 	Message(String senderCert, String receiverCert, double amount) throws NoSuchAlgorithmException {
 		message = new JSONObject();
 
@@ -23,7 +24,7 @@ public class Message {
 
 	private String sign() throws NoSuchAlgorithmException {
 		MessageDigest digest = MessageDigest.getInstance("SHA-256");
-		byte[] hash = digest.digest(message.toJSONString().getBytes(StandardCharsets.UTF_8));
+		byte[] hash = digest.digest(toString().getBytes(StandardCharsets.UTF_8));
 		String sha256hex = new String(Hex.encode(hash));
 		return sha256hex;
 	}
@@ -34,6 +35,6 @@ public class Message {
 
 	@Override
 	public String toString() {
-		return message.toString();
+		return message.toJSONString();
 	}
 }

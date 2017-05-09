@@ -1,10 +1,11 @@
-package main.server;
+package main.wallet;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -15,6 +16,7 @@ import java.security.PublicKey;
 import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -50,16 +52,16 @@ public class Wallet {
 	private static final String pubKeyFileName = "clientPriv.pem";
 	private static final String privKeyFileName = "clientPub.pem";
 	
-	Wallet() throws FileNotFoundException, NoSuchAlgorithmException, NoSuchProviderException, IOException {
+	Wallet() throws FileNotFoundException, NoSuchAlgorithmException, NoSuchProviderException, IOException, CertificateException {
 		balance = 0d;
 		records = new ArrayList<Record>();
 		
 		initKeys();
-		initKeyStore();
+		initKeyStore("hello world");
 		initClient(host, port); //change this to args[0], args[1]
 	}
 	
-	private void sendMessage(String receiver, Double amount) {
+	private void sendMessage(String receiver, Double amount) throws NoSuchAlgorithmException {
 		Message m = new Message(publicKey, receiver, amount);
 		//send JSON to miner over socket
 	}
@@ -108,7 +110,7 @@ public class Wallet {
 	    pubPem.write(pubKeyFileName);
 	}
 	
-	private void initKeyStore(String password) throws IOException {
+	private void initKeyStore(String password) throws IOException, CertificateException {
 		PrivateKey key = privPemToPKCS12();
 		Certificate X509Certificate = pubPemToPKCS12();
 		
@@ -132,9 +134,9 @@ public class Wallet {
         return key;
 	}
 	
-	private Certificate pubPemToPKCS12() {
+	private Certificate pubPemToPKCS12() throws IOException, CertificateException {
 		
-		FileReader reader = new FileReader(pubKeyFile);
+		FileReader reader = new FileReader(pubKeyFileName);
 		PEMParser pem = new PEMParser(reader);
 
         X509CertificateHolder certHolder = (X509CertificateHolder) pem.readObject();
@@ -174,10 +176,10 @@ public class Wallet {
         keyStore = KeyStore.getInstance("PKCS12");
         keyStore.load(null);
         keyStore.setKeyEntry("alias", (Key) key, password.toCharArray(),
-            new java.security.cert.Certificate[]{X509Certificate});
+            new java.security.cert.Certificate[]{pubPemToPKCS12()});
         keyStore.store(bos, password.toCharArray());
         bos.close();
-        return bos.toByteArray();
+        //return bos.toByteArray();
         
         
 		
@@ -187,7 +189,7 @@ public class Wallet {
 		client = new HTTPSClient(host, port);
 	}
 	
-	public static void main(String[] args) throws FileNotFoundException, NoSuchAlgorithmException, NoSuchProviderException, IOException {
+	public static void main(String[] args) throws FileNotFoundException, NoSuchAlgorithmException, NoSuchProviderException, IOException, CertificateException {
 		Wallet w = new Wallet();
 	}
 
