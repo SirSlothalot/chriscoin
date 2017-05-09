@@ -1,4 +1,4 @@
-package main.server;
+package main.miner;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -94,7 +94,8 @@ public class HTTPSServer {
             this.sslSocket = sslSocket;
         }
 
-        public void run(){
+        @Override
+		public void run(){
             sslSocket.setEnabledCipherSuites(sslSocket.getSupportedCipherSuites());
 
             try{
