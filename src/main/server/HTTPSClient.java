@@ -17,7 +17,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 public class HTTPSClient {
-    private String host = "10.20.185.230";
+    private String host = "127.0.0.1";
     private int port = 9999;
 
     public static void main(String[] args){

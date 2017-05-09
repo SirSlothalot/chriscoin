@@ -1,11 +1,13 @@
 import java.io.FileNotFoundException;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.security.Key;
 
 import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemWriter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+
 
 public class PemFile {
 	private PemObject pem;
@@ -15,7 +17,7 @@ public class PemFile {
 	}
 	
 	public void write(String filename) throws FileNotFoundException, IOException {
-		PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(filename)));
+		JcaPEMWriter pemWriter = new JcaPEMWriter(new OutputStreamWriter(new FileOutputStream(filename)));
 		try {
 			pemWriter.writeObject(this.pem);
 		} finally {

@@ -41,6 +41,7 @@ public class Wallet {
 		records = new ArrayList<Record>();
 		
 		initKeys();
+		initKeyStore();
 		initClient(host, port); //change this to args[0], args[1]
 	}
 	
@@ -122,6 +123,7 @@ public class Wallet {
 	
 	
 	//https://www.txedo.com/blog/java-generate-rsa-keys-write-pem-file/
+	//https://tls.mbed.org/kb/cryptography/asn1-key-structures-in-der-and-pem
 	private void initKeys() throws FileNotFoundException, IOException,
 			NoSuchAlgorithmException, NoSuchProviderException {	
 		
@@ -146,6 +148,9 @@ public class Wallet {
 	    pubPem.write("clientPub.pem");
 	}
 	
+	private void initKeyStore() {
+		
+	}
 	
 	private void initClient(String host, int port) {
 		client = new HTTPSClient(host, port);
