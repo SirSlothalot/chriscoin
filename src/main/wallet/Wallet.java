@@ -2,7 +2,6 @@ package main.wallet;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.security.Key;
@@ -12,28 +11,19 @@ import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.Security;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Date;
 import java.util.ArrayList;
 
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.json.simple.JSONObject;
-import org.bouncycastle.util.io.pem.*;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-
-import sun.security.tools.keytool.CertAndKeyGen;
-import sun.security.x509.X509CertImpl;
 
 public class Wallet {
 
@@ -59,11 +49,12 @@ public class Wallet {
 		initKeys();
 		initKeyStore("hello world");
 		initClient(host, port); //change this to args[0], args[1]
+		sendMessage("Jane", 60.0);
 	}
 	
 	private void sendMessage(String receiver, Double amount) throws NoSuchAlgorithmException {
 		Message m = new Message(publicKey, receiver, amount);
-		//send JSON to miner over socket
+		System.out.println(m);
 	}
 	
 	private void receiveMessage(Message mesaage) {
