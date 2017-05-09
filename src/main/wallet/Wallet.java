@@ -1,30 +1,22 @@
 package main.wallet;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.security.Key;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.Security;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 
 public class Wallet {
 
@@ -109,61 +101,38 @@ public class Wallet {
 	}
 	
 	private void initKeyStore(String password) {
-		PrivateKey key = privPemToPKCS12();
-		Certificate X509Certificate = pubPemToPKCS12();
+		
 		
 		try {
-	        keyStore = KeyStore.getInstance("PKCS12");
-	        keyStore.load(null);
-	        keyStore.setKeyEntry("alias", (Key) key, password.toCharArray(), new java.security.cert.Certificate[]{pubPemToPKCS12()});
-	        keyStore.store(new FileOutputStream("clientKeyStore.jks"), password.toCharArray());
-		} catch(Exception e) {
-			e.printStackTrace();
-		}	
-	}
-	
-	private PrivateKey privPemToPKCS12() {
-		try {
-			FileReader reader = new FileReader(privKeyFileName);
+			Security.addProvider(new BouncyCastleProvider());
+			KeyFactory factory = KeyFactory.getInstance("RSA", "BC");
 			
-			PEMParser pem = new PEMParser(reader);
-	        PEMKeyPair pemKeyPair = ((PEMKeyPair)pem.readObject());
-	        JcaPEMKeyConverter jcaPEMKeyConverter = new JcaPEMKeyConverter().setProvider("SC");
-	        KeyPair keyPair = jcaPEMKeyConverter.getKeyPair(pemKeyPair);
-
-	        PrivateKey key = keyPair.getPrivate();
-
-	        pem.close();
-	        reader.close();
-	        
-	        return key;
+			PrivateKey priv = generatePrivateKey(factory, privKeyFileName);			
+			PublicKey pub = generatePublicKey(factory, pubKeyFileName);
+			
+			System.out.println(priv.toString());
+			
+//			keyStore = KeyStore.getInstance("PKCS8");
+//	        keyStore.load(null);
+//	        keyStore.setKeyEntry("alias", (Key) priv, password.toCharArray(), new java.security.cert.Certificate[]{pubPemToPKCS12()});
+//	        keyStore.store(new FileOutputStream("clientKeyStore.jks"), password.toCharArray());
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
 		}
 	}
 	
-	private Certificate pubPemToPKCS12() {
-		try {
-			//read file
-			FileReader reader = new FileReader(pubKeyFileName);
-			PEMParser pem = new PEMParser(reader);
-
-			
-	        X509CertificateHolder certHolder = (X509CertificateHolder) pem.readObject();
-	        JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
-	        converter.setProvider("SC");
-	        
-	        Certificate X509Certificate = converter.getCertificate(certHolder);
-
-	        pem.close();
-	        reader.close();
-	        
-	        return X509Certificate;
-		} catch(Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+	private static PrivateKey generatePrivateKey(KeyFactory factory, String filename) throws InvalidKeySpecException, FileNotFoundException, IOException {
+		PemFile pemFile = new PemFile(filename);
+		byte[] content = pemFile.getPemObject().getContent();
+		PKCS8EncodedKeySpec privKeySpec = new PKCS8EncodedKeySpec(content);
+		return factory.generatePrivate(privKeySpec);
+	}
+	
+	private static PublicKey generatePublicKey(KeyFactory factory, String filename) throws InvalidKeySpecException, FileNotFoundException, IOException {
+		PemFile pemFile = new PemFile(filename);
+		byte[] content = pemFile.getPemObject().getContent();
+		X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(content);
+		return factory.generatePublic(pubKeySpec);
 	}
 	
 	private void initClient(String host, int port) {
