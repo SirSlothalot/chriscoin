@@ -1,5 +1,6 @@
 package main.server;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -20,24 +21,34 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 import java.util.ArrayList;
 
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.json.simple.JSONObject;
 import org.bouncycastle.util.io.pem.*;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 
 import sun.security.tools.keytool.CertAndKeyGen;
 import sun.security.x509.X509CertImpl;
 
 public class Wallet {
 
+	private KeyStore keyStore;
+	
 	private String privateKey;
 	private String publicKey; //a.k.a Certificate
 	private Double balance;
 	
-	ArrayList<Record> records;
+	private ArrayList<Record> records;
 	
-	HTTPSClient client;
-	String host;
-	int port;
+	private HTTPSClient client;
+	private String host;
+	private int port;
+	
+	private static final String pubKeyFileName = "clientPriv.pem";
+	private static final String privKeyFileName = "clientPub.pem";
 	
 	Wallet() throws FileNotFoundException, NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		balance = 0d;
@@ -70,60 +81,6 @@ public class Wallet {
 		}
 	}
 	
-//	private void initKeys(char[] password) {
-//		//setup private/public keys
-//		
-//
-//		
-//		try{
-//			//create empty KeyStore
-//		    KeyStore keyStore = KeyStore.getInstance("JKS");
-//		    keyStore.load(null,null);
-//		    
-//		    //initialize key generator
-//		    KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
-//		    gen.initialize(2048);
-//		    
-//		    //create keys
-//		    KeyPair keyPair = gen.genKeyPair();
-//		    PrivateKey privateKey = keyPair.getPrivate();
-//		    PublicKey publicKey = keyPair.getPublic();
-//		    
-//		    if (!"X.509".equalsIgnoreCase(publicKey.getFormat())) {
-//		    	throw new IllegalArgumentException("publicKey's is not X.509, but "
-//		    			+ publicKey.getFormat());
-//	    	}
-//		    
-//		    X509Certificate cert = generateCertificate(keyPair);
-//		    Certificate[] certChain = new Certificate[1];
-//		    certChain[0] = cert;
-//		    
-//		    keyStore.setKeyEntry("key1", privateKey, password, certChain);
-//		    
-//		}catch(Exception e){
-//		    e.printStackTrace();
-//		}
-//		
-//		
-//		
-//	    
-//	    //save the KeyStore to a file
-//	    keyStore.store(new FileOutputStream("walletKeys.jks"), password);
-//
-//	    //https://www.txedo.com/blog/java-generate-rsa-keys-write-pem-file/ 
-//	    
-//	    //http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/8u40-b25/sun/security/tools/keytool/CertAndKeyGen.java#CertAndKeyGen.0privateKey
-//	    //http://www.programcreek.com/java-api-examples/java.security.KeyPairGenerator
-//
-//		//http://stackoverflow.com/questions/9890313/how-to-use-keystore-in-java-to-store-private-key
-//	}
-//	
-//	private X509Certificate generateCertificate(KeyPair keyPair) {
-//		X509v3CertificateBuilder cert = new X509v3CertificateGenerator();
-//		
-//	}
-	
-	
 	
 	//https://www.txedo.com/blog/java-generate-rsa-keys-write-pem-file/
 	//https://tls.mbed.org/kb/cryptography/asn1-key-structures-in-der-and-pem
@@ -144,27 +101,87 @@ public class Wallet {
 	    
 	    //save private key
 	    PemFile privPem = new PemFile(privateKey, "RSA Private Key");
-	    privPem.write("clientPriv.pem");
+	    privPem.write(privKeyFileName);
 	    
 	    //save public key
 	    PemFile pubPem = new PemFile(publicKey, "RSA Public Key");
-	    pubPem.write("clientPub.pem");
+	    pubPem.write(pubKeyFileName);
 	}
 	
-	private void initKeyStore() {
+	private void initKeyStore(String password) throws IOException {
+		PrivateKey key = privPemToPKCS12();
+		Certificate X509Certificate = pubPemToPKCS12();
+		
 		
 	}
 	
-//	private void pemToPKCS12(String privKeyFile, String pubKeyFile, String password) throws Exception {
-//		//retrieve private key
-//		
-//		FileReader reader = new FileReader(privKeyFile);
-//		PEMReader pem = 
-//		
-//		//retrieve public key
-//		
-//		
-//	}
+	private PrivateKey privPemToPKCS12() throws IOException {
+		//retrieve private key
+		FileReader reader = new FileReader(privKeyFileName);
+		
+		PEMParser pem = new PEMParser(reader);
+        PEMKeyPair pemKeyPair = ((PEMKeyPair)pem.readObject());
+        JcaPEMKeyConverter jcaPEMKeyConverter = new JcaPEMKeyConverter().setProvider("SC");
+        KeyPair keyPair = jcaPEMKeyConverter.getKeyPair(pemKeyPair);
+
+        PrivateKey key = keyPair.getPrivate();
+
+        pem.close();
+        reader.close();
+        
+        return key;
+	}
+	
+	private Certificate pubPemToPKCS12() {
+		
+		FileReader reader = new FileReader(pubKeyFile);
+		PEMParser pem = new PEMParser(reader);
+
+        X509CertificateHolder certHolder = (X509CertificateHolder) pem.readObject();
+        JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
+        
+        Certificate X509Certificate = new JcaX509CertificateConverter().setProvider("SC").getCertificate(certHolder);
+
+        pem.close();
+        reader.close();
+        
+        return X509Certificate;
+	}
+	
+	
+	
+	private void pemToPKCS12(String privKeyFile, String pubKeyFile, String password) throws Exception {
+		
+		FileReader reader = new FileReader(privKeyFile);
+		
+		PEMParser pem = new PEMParser(reader);
+        PEMKeyPair pemKeyPair = ((PEMKeyPair)pem.readObject());
+        JcaPEMKeyConverter jcaPEMKeyConverter = new JcaPEMKeyConverter().setProvider("SC");
+        KeyPair keyPair = jcaPEMKeyConverter.getKeyPair(pemKeyPair);
+
+        PrivateKey key = keyPair.getPrivate();
+
+        pem.close();
+        reader.close();
+		
+		//retrieve public key
+		
+        
+        
+        //put keys into keystore
+        
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(null);
+        keyStore.setKeyEntry("alias", (Key) key, password.toCharArray(),
+            new java.security.cert.Certificate[]{X509Certificate});
+        keyStore.store(bos, password.toCharArray());
+        bos.close();
+        return bos.toByteArray();
+        
+        
+		
+	}
 	
 	private void initClient(String host, int port) {
 		client = new HTTPSClient(host, port);
@@ -175,11 +192,3 @@ public class Wallet {
 	}
 
 }
-
-
-
-
-
-
-//transactions.add(new Transaction("Alice", "Bob", 400.50));
-//transactions.add(new Transaction("Sandy", "Mitch", 345.50));
