@@ -10,7 +10,6 @@ public class Record {
 	@SuppressWarnings("unchecked")
 	Record(String senderCert, String receiverCert, double amount) {
 		transaction = new JSONObject();
-
 		transaction.put("senderCert", senderCert);
 		transaction.put("recieverCert", receiverCert);
 		transaction.put("amount", new Double(amount));
