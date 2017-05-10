@@ -1,5 +1,7 @@
 package main.wallet;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -24,7 +26,7 @@ public class Wallet {
 		records = new ArrayList<Record>();
 		
 		//Keys.initKeyStore(keyStore, "pass1");
-		Keys.initKeys(keyStore, "pass1", "pass1");
+		keyStore = Keys.initKeys(keyStore, "pass1", "pass1");
 //		readPemKeys();
 		initClient(host, port); //change this to args[0], args[1]
 		try {
@@ -37,7 +39,8 @@ public class Wallet {
 	
 	private void sendMessage(String receiver, Double amount) {
 		try {
-			Message message = new Message(amount, keyStore.getKey("public", "pass1".toCharArray()).toString(), receiver, (PrivateKey) keyStore.getKey("private", "pass1".toCharArray()));
+			PrivateKey privKey = (PrivateKey) keyStore.getKey("private", "pass1".toCharArray());
+			Message message = new Message(amount, "pub", receiver, privKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

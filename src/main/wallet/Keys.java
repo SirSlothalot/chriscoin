@@ -1,22 +1,15 @@
 package main.wallet;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
 import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
-import java.security.cert.CertPathValidatorException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -24,15 +17,12 @@ import java.security.spec.X509EncodedKeySpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-
 import sun.security.tools.keytool.CertAndKeyGen;
 import sun.security.x509.X500Name;
 
 public class Keys {
 
 	private static final String KEY_STORE_NAME = "./src/data/clientKeyStore.jks";
-	private static final String PUB_KEY_FILE_NAME = "./src/data/clientPub.pem";
 	private static final String PRIV_KEY_FILE_NAME = "./src/data/clientPriv.pem";
 	private static final String CERT_FILE_NAME = "./src/data/clientCert.pem";
 		
