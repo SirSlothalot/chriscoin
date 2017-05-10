@@ -21,6 +21,8 @@ import javax.net.ssl.TrustManagerFactory;
 public class HTTPSClient {
     private String host = "127.0.0.1";
     private int port = 9999;
+    
+    KeyStore keyStore;
 
     public static void main(String[] args){
         HTTPSClient client = new HTTPSClient();
@@ -30,20 +32,21 @@ public class HTTPSClient {
     HTTPSClient(){
     }
 
-    HTTPSClient(String host, int port){
+    HTTPSClient(KeyStore keyStore, String host, int port){
         this.host = host;
         this.port = port;
+        this.keyStore = keyStore;
     }
 
     // Create the and initialize the SSLContext
     private SSLContext createSSLContext(){
         try{
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream("test.jks"),"passphrase".toCharArray());
+//            keyStore = KeyStore.getInstance("JKS");
+//            keyStore.load(new FileInputStream("test.jks"),"passphrase".toCharArray());
 
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-            keyManagerFactory.init(keyStore, "passphrase".toCharArray());
+            keyManagerFactory.init(keyStore, "pass1".toCharArray());
             KeyManager[] km = keyManagerFactory.getKeyManagers();
 
             // Create trust manager

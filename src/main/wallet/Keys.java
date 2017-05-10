@@ -1,19 +1,15 @@
 package main.wallet;
 
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.StringReader;
 import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.Security;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
 
@@ -30,7 +26,6 @@ public class Keys {
 	//https://tls.mbed.org/kb/cryptography/asn1-key-structures-in-der-and-pem
 	static KeyStore initKeys(KeyStore keyStore, String keyStorePassword, String privKeyPassword) {	
 		try {
-			
 			 //initialize KeyStore
 		    keyStore = KeyStore.getInstance("PKCS12");
 		    keyStore.load(null,null);
@@ -52,7 +47,6 @@ public class Keys {
 	        //save keyStore
 	        keyStore.store(new FileOutputStream(KEY_STORE_NAME), keyStorePassword.toCharArray());
 
-	        
 	        //save private key as PEM file
 		    PemFile privPem = new PemFile(privKey, "RSA Private Key");
 		    privPem.write(PRIV_KEY_FILE_NAME);
@@ -80,42 +74,36 @@ public class Keys {
 			X509Certificate cert = pemToCert(CERT_FILE_NAME);
 			
 			System.out.println(priv.toString());
+			String str = cert.toString();
+			System.out.println(str);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	static PrivateKey pemToPrivateKey(KeyFactory factory, String filename) throws InvalidKeySpecException, FileNotFoundException, IOException {
-		PemFile pemFile = new PemFile(filename);
-		byte[] content = pemFile.getPemObject().getContent();
-		PKCS8EncodedKeySpec privKeySpec = new PKCS8EncodedKeySpec(content);
-		return factory.generatePrivate(privKeySpec);
-	}
-	
-	static PublicKey pemToPublicKey(KeyFactory factory, String filename) {
+	static PrivateKey pemToPrivateKey(KeyFactory factory, String filename) {
 		try {
 			PemFile pemFile = new PemFile(filename);
 			byte[] content = pemFile.getPemObject().getContent();
-			X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(content);
-			return factory.generatePublic(pubKeySpec);
-		} catch (Exception e) {
+			PKCS8EncodedKeySpec privKeySpec = new PKCS8EncodedKeySpec(content);
+			return factory.generatePrivate(privKeySpec);
+		} catch(Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 	
 	static public X509Certificate pemToCert(String pem) {
-        try {
-        	X509Certificate cert = null;
-        	StringReader reader = new StringReader(pem);
-            PEMParser pr = new PEMParser(reader);
-            cert = (X509Certificate)pr.readObject();
-            return cert;
-        } catch(Exception e) {
-        	e.printStackTrace();
-        	return null;
-        }
-        
+		try {
+	        CertificateFactory fact = CertificateFactory.getInstance("X.509");
+	        FileInputStream is = new FileInputStream (pem);
+	        X509Certificate cert = (X509Certificate) fact.generateCertificate(is);
+	        return cert;
+		} catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		
     }
 }

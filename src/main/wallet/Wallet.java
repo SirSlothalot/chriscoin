@@ -61,7 +61,7 @@ public class Wallet {
 	}
 	
 	private void initClient(String host, int port) {
-		client = new HTTPSClient(host, port);
+//		client = new HTTPSClient(host, port);
 	}
 	
 	public static void main(String[] args) {
