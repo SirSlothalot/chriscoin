@@ -1,15 +1,16 @@
 package main.wallet;
 
 import java.io.Serializable;
+import java.security.PublicKey;
 
 @SuppressWarnings("serial")
 class Transaction implements Serializable{
 	
 	private double amount;
-	private String senderCert;
-	private String recieverCert;
+	private PublicKey senderCert;
+	private PublicKey recieverCert;
 	
-	public Transaction(double amount, String senderCert, String recieverCert) {
+	public Transaction(double amount, PublicKey senderCert, PublicKey recieverCert) {
 		this.amount = amount;
 		this.senderCert = senderCert;
 		this.recieverCert = recieverCert;
@@ -19,19 +20,19 @@ class Transaction implements Serializable{
 		return amount;
 	}
 	
-	public String getSenderCert() {
+	public PublicKey getSenderCert() {
 		return senderCert;
 	}
 	
-	public String getRecieverCert() {
+	public PublicKey getRecieverCert() {
 		return recieverCert;
 	}
 
 	@Override
 	public String toString() {
 		return "Transaction\n"
-				+ "Amount:       " + amount + "\n"
-				+ "senderCert:   " + senderCert + "\n"
-				+ "recieverCert: " + recieverCert;
+				+ "\tAmount:       " + amount + "\n"
+				+ "\tsenderCert:   " + senderCert.toString() + "\n"
+				+ "\trecieverCert: " + recieverCert.toString();
 	}
 }

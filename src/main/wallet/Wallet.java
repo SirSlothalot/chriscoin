@@ -1,12 +1,8 @@
 package main.wallet;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.UnrecoverableKeyException;
+import java.security.PublicKey;
 import java.util.ArrayList;
 
 public class Wallet {
@@ -25,14 +21,13 @@ public class Wallet {
 		balance = 0d;
 		records = new ArrayList<Record>();
 		
-		//Keys.initKeyStore(keyStore, "pass1");
 		keyStore = Keys.initKeys(keyStore, "pass1", "pass1");
 //		readPemKeys();
 		initClient(host, port); //change this to args[0], args[1]
 		try {
 			sendMessage("Jane", 60.0);
+			sendMessage("Bob", 20.0);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -40,7 +35,9 @@ public class Wallet {
 	private void sendMessage(String receiver, Double amount) {
 		try {
 			PrivateKey privKey = (PrivateKey) keyStore.getKey("private", "pass1".toCharArray());
-			Message message = new Message(amount, "pub", receiver, privKey);
+			PublicKey pubKey = (PublicKey) keyStore.getCertificate("cert").getPublicKey();
+			Message message = new Message(amount, pubKey, pubKey, privKey);
+			System.out.println(message.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
