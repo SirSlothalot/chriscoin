@@ -28,7 +28,7 @@ public class Message extends Transaction{
 		    System.out.println("Singature:" + new String(Hex.encode(signatureBytes)));
 
 		    
-			return null;
+			return "lol";
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
