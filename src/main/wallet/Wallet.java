@@ -19,7 +19,7 @@ public class Wallet {
 		balance = 0d;
 		records = new ArrayList<Record>();
 		
-		Keys.initKeyStore(keyStore, "pass1");
+//		Keys.initKeyStore(keyStore, "pass1");
 		Keys.initKeys(keyStore, "pass1", "pass2");
 //		readPemKeys();
 		initClient(host, port); //change this to args[0], args[1]
