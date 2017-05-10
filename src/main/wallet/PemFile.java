@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.security.Key;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
@@ -20,6 +22,10 @@ public class PemFile {
 
 	public PemFile (Key key, String description) {
 		this.pem = new PemObject(description, key.getEncoded());
+	}
+	
+	public PemFile (Certificate cert, String description) throws CertificateEncodingException {
+		this.pem = new PemObject(description, cert.getEncoded());
 	}
 	
 	public PemFile(String filename) throws FileNotFoundException, IOException {
