@@ -4,8 +4,6 @@ import java.security.*;
 
 import org.bouncycastle.util.encoders.Hex;
 
-import sun.awt.dnd.SunDragSourceContextPeer;
-
 @SuppressWarnings("serial")
 public class Message extends Transaction{
 	

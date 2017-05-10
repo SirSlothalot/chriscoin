@@ -9,14 +9,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.security.Key;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
-
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
