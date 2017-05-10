@@ -35,20 +35,10 @@ public class Keys {
 	private static final String PUB_KEY_FILE_NAME = "./src/data/clientPub.pem";
 	private static final String PRIV_KEY_FILE_NAME = "./src/data/clientPriv.pem";
 	private static final String CERT_FILE_NAME = "./src/data/clientCert.pem";
-	
-//	static void initKeyStore(KeyStore keyStore, String keyStorePassword) {
-//		try{
-//		    keyStore = KeyStore.getInstance("PKCS12");
-//		    keyStore.load(null, null); 
-//		    keyStore.store(new FileOutputStream(KEY_STORE_NAME), keyStorePassword.toCharArray());
-//		} catch (Exception ex){
-//		    ex.printStackTrace();
-//		}
-//	}
-	
+		
 	//https://www.txedo.com/blog/java-generate-rsa-keys-write-pem-file/
 	//https://tls.mbed.org/kb/cryptography/asn1-key-structures-in-der-and-pem
-	static void initKeys(KeyStore keyStore, String keyStorePassword, String privKeyPassword) {	
+	static KeyStore initKeys(KeyStore keyStore, String keyStorePassword, String privKeyPassword) {	
 		try {
 			
 			 //initialize KeyStore
@@ -65,7 +55,7 @@ public class Keys {
 		    X509Certificate[] chain = new X509Certificate[1];
 		    chain[0]=cert;
 		    
-		    //store keys into keyStore
+		    //store private into keyStore
 		    keyStore.setKeyEntry("private", privKey, privKeyPassword.toCharArray(), chain);
 	        keyStore.setCertificateEntry("cert", cert);
 	        
@@ -83,8 +73,11 @@ public class Keys {
 		    
 		    readPemKeys();
 		    
+		    return keyStore;
+		    
 		} catch(Exception e) {
 			e.printStackTrace();
+			return null;
 		}
 	}
 	
@@ -92,50 +85,37 @@ public class Keys {
 		try {
 			Security.addProvider(new BouncyCastleProvider());
 			KeyFactory keyFactory = KeyFactory.getInstance("RSA", "BC");
-			CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 
-			
-			PrivateKey priv = generatePrivateKey(keyFactory, PRIV_KEY_FILE_NAME);			
-//			Certificate cert = generateCert(certFactory, CERT_FILE_NAME);
-			X509Certificate cert = convertToX509Certificate(CERT_FILE_NAME);
+			PrivateKey priv = pemToPrivateKey(keyFactory, PRIV_KEY_FILE_NAME);			
+			X509Certificate cert = pemToCert(CERT_FILE_NAME);
 			
 			System.out.println(priv.toString());
-//			System.out.println(cert.toString());
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	static PrivateKey generatePrivateKey(KeyFactory factory, String filename) throws InvalidKeySpecException, FileNotFoundException, IOException {
+	static PrivateKey pemToPrivateKey(KeyFactory factory, String filename) throws InvalidKeySpecException, FileNotFoundException, IOException {
 		PemFile pemFile = new PemFile(filename);
 		byte[] content = pemFile.getPemObject().getContent();
 		PKCS8EncodedKeySpec privKeySpec = new PKCS8EncodedKeySpec(content);
 		return factory.generatePrivate(privKeySpec);
 	}
 	
-	static PublicKey generatePublicKey(KeyFactory factory, String filename) throws InvalidKeySpecException, FileNotFoundException, IOException {
-		PemFile pemFile = new PemFile(filename);
-		byte[] content = pemFile.getPemObject().getContent();
-		X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(content);
-		return factory.generatePublic(pubKeySpec);
-	}
-		
-	static X509Certificate generateCert(CertificateFactory factory, String filename) throws InvalidKeySpecException, FileNotFoundException, IOException {
-		
-		InputStream inputStream;
-	    X509Certificate cert = null;
-	    try {
-	        inputStream = filename.getClass().getResourceAsStream(filename);
-	        cert = (X509Certificate)factory.generateCertificate(inputStream);
-	        inputStream.close();
-	    } catch(Exception e){
-	        e.printStackTrace();
-	    }
-	    return cert;
+	static PublicKey pemToPublicKey(KeyFactory factory, String filename) {
+		try {
+			PemFile pemFile = new PemFile(filename);
+			byte[] content = pemFile.getPemObject().getContent();
+			X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(content);
+			return factory.generatePublic(pubKeySpec);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
-	static public X509Certificate convertToX509Certificate(String pem) {
+	static public X509Certificate pemToCert(String pem) {
         try {
         	X509Certificate cert = null;
         	StringReader reader = new StringReader(pem);
