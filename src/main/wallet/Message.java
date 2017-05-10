@@ -1,40 +1,57 @@
 package main.wallet;
 
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
+import java.security.*;
 import org.bouncycastle.util.encoders.Hex;
-import org.json.simple.JSONObject;
 
-public class Message {
+@SuppressWarnings("serial")
+public class Message extends Transaction{
+	
+	private String signature;
+	private String nonce;
+	private String minerHash;
+	
 
-	private JSONObject message;
-
-	@SuppressWarnings("unchecked")
-	Message(String senderCert, String receiverCert, double amount) throws NoSuchAlgorithmException {
-		message = new JSONObject();
-
-		message.put("senderCert", senderCert);
-		message.put("recieverCert", receiverCert);
-		message.put("amount", new Double(amount));
-		message.put("signature", sign());
+	public Message(double amount, String senderCert, String recieverCert, PrivateKey senderPrivKey) {
+		super(amount, senderCert, recieverCert);
+		signature = sign(super.toString(), senderPrivKey);
+		nonce = null;
+		minerHash = null;
+		
 	}
 
-	private String sign() throws NoSuchAlgorithmException {
-		MessageDigest digest = MessageDigest.getInstance("SHA-256");
-		byte[] hash = digest.digest(toString().getBytes(StandardCharsets.UTF_8));
-		String sha256hex = new String(Hex.encode(hash));
-		return sha256hex;
+	private String sign(String message, PrivateKey senderPrivKey) {
+		try {
+			Signature sig = Signature.getInstance("SHA256withRSA");
+		    sig.initSign(senderPrivKey);
+		    sig.update(message.getBytes());
+		    byte[] signatureBytes = sig.sign();
+		    System.out.println("Singature:" + new String(Hex.encode(signatureBytes)));
+
+		    
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+	}
+	
+	public String getSignature() {
+		return signature;
+	}
+	
+	public String getNonce() {
+		return nonce;
+	}
+	
+	public String getMinerHash() {
+		return minerHash;
 	}
 
-	public JSONObject getJSON() {
-		return message;
-	}
-
-	@Override
-	public String toString() {
-		return message.toJSONString();
-	}
+//	private String sign() throws NoSuchAlgorithmException {
+//		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+//		byte[] hash = digest.digest(toString().getBytes(StandardCharsets.UTF_8));
+//		String sha256hex = new String(Hex.encode(hash));
+//		return sha256hex;
+//	}
 }
