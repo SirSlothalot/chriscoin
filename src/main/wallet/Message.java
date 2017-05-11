@@ -48,6 +48,10 @@ public class Message extends Transaction{
 		return minerHash;
 	}
 	
+	public Transaction getTransaction() {
+		return super.getTransaction();
+	}
+	
 	@Override
 	public String toString() {
 		return "Message\n"

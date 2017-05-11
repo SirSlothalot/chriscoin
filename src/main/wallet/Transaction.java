@@ -53,6 +53,10 @@ class Transaction implements Serializable{
 		}
 		return bytes;
 	}
+	
+	public Transaction getTransaction() {
+		return this;
+	}
 
 	@Override
 	public String toString() {

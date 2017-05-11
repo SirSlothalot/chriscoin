@@ -1,5 +1,6 @@
 package main.wallet;
 
+import java.io.*;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -17,9 +18,11 @@ public class Wallet {
 	private static final String HOST = "127.0.0.1";
 	private static final int PORT = 9999;
 	
+	private static final String RECORDS_DIR	= 	"./src/data/wallet/records/";
+	
 	Wallet() {
-		balance = 0d;
-		records = new ArrayList<Record>();
+		balance = 40d;
+		loadWallet();
 		
 		keyStore = Keys.initKeyStore(keyStore, "pass1");
 		Keys.initKeys(keyStore, "pass1", "pass1");
@@ -29,17 +32,24 @@ public class Wallet {
 		
 		sendMessage("Jane", 60.0);
 		sendMessage("Bob", 20.0);
+		
+		saveWallet();
+		printWallet();
 	}
 	
 	private void sendMessage(String receiver, Double amount) {
-		try {
-			PrivateKey privKey = (PrivateKey) keyStore.getKey("my-private-key", "pass1".toCharArray());
-			PublicKey pubKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
-			PublicKey receiverKey = (PublicKey) keyStore.getCertificate("peer-certificate-0").getPublicKey();
-			Message message = new Message(amount, pubKey, receiverKey, privKey);
-			System.out.println(message.toString());
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (canSendAmount(amount)) { 
+			try {
+				PrivateKey privKey = (PrivateKey) keyStore.getKey("my-private-key", "pass1".toCharArray());
+				PublicKey pubKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
+				PublicKey receiverKey = (PublicKey) keyStore.getCertificate("peer-certificate-0").getPublicKey();
+				Message message = new Message(amount, pubKey, receiverKey, privKey);
+				addRecord(message.getTransaction());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			System.err.println("Not enough money to send");
 		}
 	}
 	
@@ -47,6 +57,10 @@ public class Wallet {
 //		check who is receiver/sender
 //		records.add(new Record(sender, publicKey, amount));
 //		updateBalance(amount);
+	}
+	
+	private void addRecord(Transaction trans) {
+		records.add(new Record(trans.getAmount(), trans.getSenderCert(), trans.getRecieverCert()));
 	}
 	
 	private void updateBalance(Double amount) {
@@ -58,6 +72,40 @@ public class Wallet {
 		for(Record r : records) {
 			System.out.println(r.toString());
 		}
+	}
+	
+	private void saveWallet() {
+		try {
+			OutputStream file = new FileOutputStream(RECORDS_DIR + "records.ser");
+			OutputStream buffer = new BufferedOutputStream(file);
+		    ObjectOutput output = new ObjectOutputStream(buffer);
+		    output.writeObject(records);
+		    output.close();
+		    System.out.println("Records saved..." + "\tRecord size: " + records.size());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void loadWallet() {
+		ObjectInput input = null;
+		try {
+			InputStream file = new FileInputStream(RECORDS_DIR + "records.ser");
+		    InputStream buffer = new BufferedInputStream(file);
+			input = new ObjectInputStream (buffer);
+		    records = (ArrayList<Record>) input.readObject();
+		    input.close();
+		    System.out.println("Records loaded..." + "\tRecord size: " + records.size());
+		} catch(ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch(IOException e) {
+			records = new ArrayList<Record>();
+		}
+	}
+	
+	private boolean canSendAmount(Double amount) {
+		return amount <= balance;
 	}
 	
 	private void initClient(String host, int port) {
