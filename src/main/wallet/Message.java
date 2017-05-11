@@ -14,17 +14,18 @@ public class Message extends Transaction{
 
 	public Message(double amount, PublicKey senderCert, PublicKey recieverCert, PrivateKey senderPrivKey) {
 		super(amount, senderCert, recieverCert);
-		signature = sign(super.toString(), senderPrivKey);
+		
+		signature = sign(super.getMessage(), senderPrivKey);
 		nonce = null;
 		minerHash = null;
 		
 	}
 
-	private byte[] sign(String message, PrivateKey senderPrivKey) {
+	private byte[] sign(byte[] message, PrivateKey senderPrivKey) {
 		try {
 			Signature sig = Signature.getInstance("SHA256withRSA");
 		    sig.initSign(senderPrivKey);
-		    sig.update(message.getBytes());
+		    sig.update(message);
 		    byte[] signatureBytes = sig.sign();
 		    
 			return signatureBytes;

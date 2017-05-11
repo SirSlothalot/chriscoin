@@ -1,5 +1,9 @@
 package main.wallet;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.security.PublicKey;
 
@@ -26,6 +30,28 @@ class Transaction implements Serializable{
 	
 	public PublicKey getRecieverCert() {
 		return recieverCert;
+	}
+	
+	public byte[] getMessage() {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ObjectOutput out = null;
+		byte[] bytes = null;
+		try {
+		  out = new ObjectOutputStream(bos);   
+		  out.writeObject(this);
+		  out.flush();
+		  bytes = bos.toByteArray();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+		    try {
+				bos.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return bytes;
 	}
 
 	@Override
