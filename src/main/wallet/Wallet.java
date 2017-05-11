@@ -21,8 +21,8 @@ public class Wallet {
 	private static final String RECORDS_DIR	= 	"./src/data/wallet/records/";
 	
 	Wallet() {
-		balance = 40d;
 		loadWallet();
+		balance = calcBalance();
 		
 		keyStore = Keys.initKeyStore(keyStore, "pass1");
 		Keys.initKeys(keyStore, "pass1", "pass1");
@@ -30,9 +30,10 @@ public class Wallet {
 	    
 		initClient(HOST, PORT); //change this to args[0], args[1]
 		
-		sendMessage("Jane", 60.0);
-		sendMessage("Bob", 20.0);
+		sendMessage("Jane", -60.0);
+		sendMessage("Bob", -20.0);
 		
+		balance = calcBalance();
 		saveWallet();
 		printWallet();
 	}
@@ -45,6 +46,9 @@ public class Wallet {
 				PublicKey receiverKey = (PublicKey) keyStore.getCertificate("peer-certificate-0").getPublicKey();
 				Message message = new Message(amount, pubKey, receiverKey, privKey);
 				addRecord(message.getTransaction());
+				System.out.println(message.toString());
+				processAmount(amount);
+				printBalance();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -57,6 +61,9 @@ public class Wallet {
 //		check who is receiver/sender
 //		records.add(new Record(sender, publicKey, amount));
 //		updateBalance(amount);
+		
+		
+		
 	}
 	
 	private void addRecord(Transaction trans) {
@@ -68,7 +75,12 @@ public class Wallet {
 		//deduct or add amount
 	}
 	
+	private void printBalance() {
+		System.out.println("Balance: " + balance);
+	}
+	
 	private void printWallet() {
+		printBalance();
 		for(Record r : records) {
 			System.out.println(r.toString());
 		}
@@ -82,6 +94,7 @@ public class Wallet {
 		    output.writeObject(records);
 		    output.close();
 		    System.out.println("Records saved..." + "\tRecord size: " + records.size());
+		    printBalance();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -97,6 +110,7 @@ public class Wallet {
 		    records = (ArrayList<Record>) input.readObject();
 		    input.close();
 		    System.out.println("Records loaded..." + "\tRecord size: " + records.size());
+		    printBalance();
 		} catch(ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch(IOException e) {
@@ -104,8 +118,20 @@ public class Wallet {
 		}
 	}
 	
+	private double calcBalance() {
+		double bal = 0;
+		for (int i = 0; i < records.size(); i++) {
+			bal += records.get(i).getAmount();
+		}
+		return bal;
+	}
+	
 	private boolean canSendAmount(Double amount) {
-		return amount <= balance;
+		return (balance + amount) >= 0;
+	}
+	
+	private void processAmount(double amount) {
+		balance += amount;
 	}
 	
 	private void initClient(String host, int port) {
