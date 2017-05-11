@@ -79,8 +79,8 @@ public class HTTPSClient {
 
             System.out.println("SSL client started");
             new ClientThread(sslSocket).start();
-        } catch (Exception ex){
-            ex.printStackTrace();
+        } catch (Exception e){
+            e.printStackTrace();
         }
     }
 
@@ -129,8 +129,8 @@ public class HTTPSClient {
                 }
 
                 sslSocket.close();
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

@@ -14,28 +14,27 @@ public class Wallet {
 	private ArrayList<Record> records;
 	
 	private HTTPSClient client;
-	private String host;
-	private int port;
+	private static final String HOST = "127.0.0.1";
+	private static final int PORT = 9999;
 	
 	Wallet() {
 		balance = 0d;
 		records = new ArrayList<Record>();
 		
-		keyStore = Keys.initKeys(keyStore, "pass1", "pass1");
-//		readPemKeys();
-		initClient(host, port); //change this to args[0], args[1]
-		try {
-			sendMessage("Jane", 60.0);
-			sendMessage("Bob", 20.0);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		keyStore = Keys.initKeyStore(keyStore, "pass1");
+		Keys.initKeys(keyStore, "pass1", "pass1");
+	    Keys.loadTrustedCertificates(keyStore);
+	    
+		initClient(HOST, PORT); //change this to args[0], args[1]
+		
+		sendMessage("Jane", 60.0);
+		sendMessage("Bob", 20.0);
 	}
 	
 	private void sendMessage(String receiver, Double amount) {
 		try {
-			PrivateKey privKey = (PrivateKey) keyStore.getKey("private", "pass1".toCharArray());
-			PublicKey pubKey = (PublicKey) keyStore.getCertificate("cert").getPublicKey();
+			PrivateKey privKey = (PrivateKey) keyStore.getKey("my-private-key", "pass1".toCharArray());
+			PublicKey pubKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
 			Message message = new Message(amount, pubKey, pubKey, privKey);
 			System.out.println(message.toString());
 		} catch (Exception e) {
@@ -61,7 +60,8 @@ public class Wallet {
 	}
 	
 	private void initClient(String host, int port) {
-//		client = new HTTPSClient(host, port);
+		client = new HTTPSClient(keyStore, host, port);
+		client.run();
 	}
 	
 	public static void main(String[] args) {

@@ -38,12 +38,12 @@ public class HTTPSServer {
     // Create the and initialize the SSLContext
     private SSLContext createSSLContext(){
         try{
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream("test.jks"),"passphrase".toCharArray());
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            keyStore.load(new FileInputStream("./src/data/miner/key-store.jks"),"pass1".toCharArray());
 
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-            keyManagerFactory.init(keyStore, "passphrase".toCharArray());
+            keyManagerFactory.init(keyStore, "pass1".toCharArray());
             KeyManager[] km = keyManagerFactory.getKeyManagers();
 
             // Create trust manager
