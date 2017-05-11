@@ -104,15 +104,15 @@ public class HTTPSClient {
                 SSLSession sslSession = sslSocket.getSession();
 
                 System.out.println("SSLSession :");
-                System.out.println("\tProtocol : "+sslSession.getProtocol());
-                System.out.println("\tCipher suite : "+sslSession.getCipherSuite());
+                System.out.println("\tProtocol : "		+ sslSession.getProtocol());
+                System.out.println("\tCipher suite : "	+ sslSession.getCipherSuite());
 
                 // Start handling application content
-                InputStream inputStream = sslSocket.getInputStream();
-                OutputStream outputStream = sslSocket.getOutputStream();
+                InputStream inputStream 	= sslSocket.getInputStream();
+                OutputStream outputStream 	= sslSocket.getOutputStream();
 
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(outputStream));
+                BufferedReader bufferedReader 	= new BufferedReader(new InputStreamReader(inputStream));
+                PrintWriter printWriter 		= new PrintWriter(new OutputStreamWriter(outputStream));
 
                 // Write data
                 printWriter.println("Hello server");
