@@ -35,7 +35,8 @@ public class Wallet {
 		try {
 			PrivateKey privKey = (PrivateKey) keyStore.getKey("my-private-key", "pass1".toCharArray());
 			PublicKey pubKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
-			Message message = new Message(amount, pubKey, pubKey, privKey);
+			PublicKey receiverKey = (PublicKey) keyStore.getCertificate("peer-certificate-0").getPublicKey();
+			Message message = new Message(amount, pubKey, receiverKey, privKey);
 			System.out.println(message.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
