@@ -135,26 +135,24 @@ public class HTTPSServer {
                 
                 //Receive new messages
                 Message message = null;
-                while((message = (Message) inputStream.readObject()) != null || (line = bufferedReader.readLine()) != null){
-                	if(message != null) {
-                		//process message
-                		System.out.println(message.getAmount());
-                		printWriter.print("Miner received message");
-                        printWriter.flush();
-                        break;
-                		
-                	} else if(line != null) {
-                		System.out.println("Inut : "+line);
-                        if(line.trim().equals("No new messages for miner")){
-                            break;
-                        }
+                while((line = bufferedReader.readLine()) != null) {
+            		System.out.println("Inut : "+line);
+                	if(line.trim().equals("Imbound message")) {
+                		while((message = (Message) inputStream.readObject()) != null ){
+                    		//process message
+                			System.out.println(message.getAmount());
+                    		printWriter.println("Miner received message");
+                            printWriter.flush();
+                        	message = null;
+                        	break;
+                		}
+                	} else if(line.trim().equals("No new messages for miner")) {
+                		break;
                 	}
-                	message = null;
-                }                
-
+                }                  
                 sslSocket.close();
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

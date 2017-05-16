@@ -140,6 +140,9 @@ public class HTTPSClient {
                  
                 //If there is a message to send, send it
                 if(message != null) {
+                	printWriter.println("Imbound message");
+                	printWriter.flush();
+                	
 	                outputStream.writeObject(message);
 	                outputStream.flush();
 	               
