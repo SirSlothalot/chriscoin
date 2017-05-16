@@ -60,13 +60,12 @@ public class Wallet {
 		}
 	}
 	
-	public void receiveMessage(Message mesaage) {
+	public synchronized void receiveMessage(Message message) {
 //		check who is receiver/sender
 //		records.add(new Record(sender, publicKey, amount));
 //		updateBalance(amount);
-		
-		
-		
+		addRecord(message.getTransaction());
+		updateBalance(message.getAmount());
 	}
 	
 	private void addRecord(Transaction trans) {
