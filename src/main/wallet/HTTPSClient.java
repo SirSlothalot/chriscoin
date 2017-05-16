@@ -3,6 +3,8 @@ package main.wallet;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -21,18 +23,14 @@ public class HTTPSClient {
     private String host = "127.0.0.1";
     private int port = 9999;
     
-    KeyStore keyStore;
+    private KeyStore keyStore;
+    private Wallet wallet;
+    private Message message;
 
-    public static void main(String[] args){
-        HTTPSClient client = new HTTPSClient();
-        client.run();
-    }
-
-    HTTPSClient(){
-    }
-
-    HTTPSClient(KeyStore keyStore, String host, int port){
-        this.host = host;
+    HTTPSClient(Wallet wallet, Message message, KeyStore keyStore, String host, int port){
+        this.wallet = wallet;
+    	this.message = message;
+    	this.host = host;
         this.port = port;
         this.keyStore = keyStore;
     }
@@ -76,8 +74,8 @@ public class HTTPSClient {
             // Create socket
             SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(this.host, this.port);
 
-            System.out.println("SSL client started");
-            new ClientThread(sslSocket).start();
+            System.out.println("SSL client started:");
+            new ClientThread(sslSocket, wallet, message).start();
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -86,9 +84,13 @@ public class HTTPSClient {
     // Thread handling the socket to server
     static class ClientThread extends Thread {
         private SSLSocket sslSocket = null;
+        private Wallet wallet = null;
+        private Message message = null;
 
-        ClientThread(SSLSocket sslSocket){
+        ClientThread(SSLSocket sslSocket, Wallet wallet, Message message){
             this.sslSocket = sslSocket;
+            this.wallet = wallet;
+            this.message = message;
         }
 
         @Override
@@ -106,25 +108,52 @@ public class HTTPSClient {
                 System.out.println("\tProtocol : "+sslSession.getProtocol());
                 System.out.println("\tCipher suite : "+sslSession.getCipherSuite());
 
-                // Start handling application content
-                InputStream inputStream = sslSocket.getInputStream();
-                OutputStream outputStream = sslSocket.getOutputStream();
-
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                //Initialize streams
+                ObjectOutputStream outputStream = new ObjectOutputStream(sslSocket.getOutputStream());
+                ObjectInputStream inputStream = new ObjectInputStream(sslSocket.getInputStream());
                 PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(outputStream));
-
-                // Write data
-                printWriter.println("Hello server");
-                printWriter.println();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                
+                //Request update
+                printWriter.println("Request update");
                 printWriter.flush();
-
+                
+                //Receive update
                 String line = null;
-                while((line = bufferedReader.readLine()) != null){
-                    System.out.println("Inut : "+line);
-
-                    if(line.trim().equals("HTTP/1.1 200\r\n")){
-                        break;
-                    }
+                Message receivedMessage = null;
+                
+                
+                while((line = bufferedReader.readLine()) != null) {
+            		System.out.println("Inut : "+line);
+                	if(line.trim().equals("Imbound message")) {
+                		while((receivedMessage = (Message) inputStream.readObject()) != null ){
+                    		//update records
+                    		//update balance
+                			wallet.receiveMessage(message);
+                        	receivedMessage = null;
+                        	break;
+                		}
+                	} else if(line.trim().equals("No new messages for client")) {
+                		break;
+                	}
+                }  
+                 
+                //If there is a message to send, send it
+                if(message != null) {
+	                outputStream.writeObject(message);
+	                outputStream.flush();
+	               
+	                line = null;
+	                while((line = bufferedReader.readLine()) != null){
+	                    System.out.println("Inut : "+line);
+	
+	                    if(line.trim().equals("Miner received message")){
+	                        break;
+	                    }
+	                }
+                } else {
+                	printWriter.println("No new messages for miner");
+                	printWriter.flush();
                 }
 
                 sslSocket.close();

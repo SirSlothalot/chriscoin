@@ -23,13 +23,13 @@ public class Wallet {
 	Wallet() {
 		loadWallet();
 		balance = calcBalance();
+		balance += 1000d;
+		
 		
 		keyStore = Keys.initKeyStore(keyStore, "pass1");
 		Keys.initKeys(keyStore, "pass1", "pass1");
 	    Keys.loadTrustedCertificates(keyStore);
-	    
-		initClient(HOST, PORT); //change this to args[0], args[1]
-		
+	    		
 		sendMessage("Jane", -60.0);
 		sendMessage("Bob", -20.0);
 		
@@ -45,6 +45,9 @@ public class Wallet {
 				PublicKey pubKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
 				PublicKey receiverKey = (PublicKey) keyStore.getCertificate("peer-certificate-0").getPublicKey();
 				Message message = new Message(amount, pubKey, receiverKey, privKey);
+				
+				initClient(this, message, HOST, PORT); //change this to message, args[0], args[1]
+				
 				addRecord(message.getTransaction());
 				System.out.println(message.toString());
 				processAmount(amount);
@@ -57,7 +60,7 @@ public class Wallet {
 		}
 	}
 	
-	private void receiveMessage(Message mesaage) {
+	public void receiveMessage(Message mesaage) {
 //		check who is receiver/sender
 //		records.add(new Record(sender, publicKey, amount));
 //		updateBalance(amount);
@@ -134,8 +137,8 @@ public class Wallet {
 		balance += amount;
 	}
 	
-	private void initClient(String host, int port) {
-		client = new HTTPSClient(keyStore, host, port);
+	private void initClient(Wallet wallet, Message message, String host, int port) {
+		client = new HTTPSClient(wallet, message, keyStore, host, port);
 		client.run();
 	}
 	

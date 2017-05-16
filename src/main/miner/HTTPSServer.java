@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -18,6 +20,8 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+
+import main.wallet.Message;
 
 public class HTTPSServer {
     private int port = 9999;
@@ -109,25 +113,44 @@ public class HTTPSServer {
                 System.out.println("\tProtocol : "+sslSession.getProtocol());
                 System.out.println("\tCipher suite : "+sslSession.getCipherSuite());
 
-                // Start handling application content
-                InputStream inputStream = sslSocket.getInputStream();
-                OutputStream outputStream = sslSocket.getOutputStream();
-
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                //Initialize streams
+                ObjectOutputStream outputStream = new ObjectOutputStream(sslSocket.getOutputStream());
+                ObjectInputStream inputStream = new ObjectInputStream(sslSocket.getInputStream());
                 PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(outputStream));
-
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                
+                //Receive update request
                 String line = null;
                 while((line = bufferedReader.readLine()) != null){
-                    System.out.println("Inut : "+line);
-
-                    if(line.trim().isEmpty()){
-                        break;
+            		System.out.println("Inut : "+line);
+                    if(line.trim().equals("Request update")){
+                        //query blockchain for this user??
+                    	//determine if a message/s is waiting to be sent to user
+                    		//Yes - send message/s to user
+                    	printWriter.println("No new messages for client");
+                        printWriter.flush();
+                    	break;
                     }
-                }
-
-                // Write data
-                printWriter.print("HTTP/1.1 200\r\n");
-                printWriter.flush();
+            	}
+                
+                //Receive new messages
+                Message message = null;
+                while((message = (Message) inputStream.readObject()) != null || (line = bufferedReader.readLine()) != null){
+                	if(message != null) {
+                		//process message
+                		System.out.println(message.getAmount());
+                		printWriter.print("Miner received message");
+                        printWriter.flush();
+                        break;
+                		
+                	} else if(line != null) {
+                		System.out.println("Inut : "+line);
+                        if(line.trim().equals("No new messages for miner")){
+                            break;
+                        }
+                	}
+                	message = null;
+                }                
 
                 sslSocket.close();
             } catch (Exception ex) {
