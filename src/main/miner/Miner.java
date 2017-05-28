@@ -30,5 +30,4 @@ public class Miner {
 	public static void main(String[] args) {
 		Miner w = new Miner();
 	}
-	
 }

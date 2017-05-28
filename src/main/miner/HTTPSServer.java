@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.security.KeyStore;
+import java.security.SecureRandom;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -66,8 +67,14 @@ public class HTTPSServer {
 
             // Initialize SSLContext
             SSLContext sslContext = SSLContext.getInstance("TLSv1");
-            sslContext.init(km,  tm, null);
-
+//            
+//            SecureRandom random = new SecureRandom();
+//            byte bytes[] = new byte[20];
+//            random.nextBytes(bytes);            
+//            sslContext.init(km,  tm, random);
+            
+            sslContext.init(km, tm, null);
+            
             return sslContext;
         } catch (Exception ex){
             ex.printStackTrace();

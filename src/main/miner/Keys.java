@@ -19,14 +19,14 @@ import sun.security.x509.X500Name;
 
 public class Keys {
 
-	private static final String DATA_DIR			= 	"./src/data/wallet";
-	private static final String TRUSTED_CERTS_DIR	= 	"./src/data/wallet/trusted-certificates/";
-	private static final String KEY_STORE_NAME		= 	"./src/data/wallet/key-store.jks";
-	private static final String PRIV_KEY_FILE		= 	"./src/data/wallet/private-key.pem";
-	private static final String CERT_FILE			= 	"./src/data/wallet/certificate.pem";
+	private static final String DATA_DIR			= 	"./src/data/miner";
+	private static final String TRUSTED_CERTS_DIR	= 	"./src/data/miner/trusted-certificates/";
+	private static final String KEY_STORE_NAME		= 	"./src/data/miner/key-store.jks";
+	private static final String PRIV_KEY_FILE		= 	"./src/data/miner/private-key.pem";
+	private static final String CERT_FILE			= 	"./src/data/miner/certificate.pem";
 	private static final String PRIVATE_KEY_NAME	=	"my-private-key";
 	private static final String CERT_NAME			= 	"my-certificate";
-	private static final String CERT_GENERATOR		= 	"./gen-certs.sh";
+	private static final String CERT_GENERATOR		= 	"./gen-certs-miner.sh";
 	
 	/*
 	 * Checks if keyStore exists
@@ -71,9 +71,9 @@ public class Keys {
 //			    X509Certificate[] 	chain 	= new X509Certificate[1];
 //			    chain[0]=cert;
 				
-//				String[] cmd = new String[]{"PATH=/bin", CERT_GENERATOR};
+				//String[] cmd = new String[]{"PATH=/bin", CERT_GENERATOR};
 //				Runtime rt = Runtime.getRuntime();
-//                Process proc = rt.exec(cmd);
+//                Process proc = rt.exec(CERT_GENERATOR);
 //                proc.waitFor();
 				
 				PrivateKey			privKey = pemToPrivateKey(PRIV_KEY_FILE);
@@ -98,6 +98,8 @@ public class Keys {
 			}   
 		} catch(Exception e) {
 			e.printStackTrace();
+			System.err.println("Failed to load keys from file.\nTry running gen-certs-miner.sh before running the miner.");
+	    	System.exit(1);
 		}
 	}
 	
