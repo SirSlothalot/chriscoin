@@ -26,25 +26,34 @@ import main.wallet.Message;
 public class HTTPSServer {
     private int port = 9999;
     private boolean isServerDone = false;
+    
+    private KeyStore keyStore;
+    private Miner miner;
 
     public static void main(String[] args){
         HTTPSServer server = new HTTPSServer();
         server.run();
     }
 
-    HTTPSServer(){
+    public HTTPSServer(){
     }
 
     HTTPSServer(int port){
         this.port = port;
     }
+    
+    HTTPSServer(Miner miner, KeyStore keyStore, int port){
+    	this.miner = miner;
+    	this.keyStore = keyStore;
+    	this.port = port;
+    }
 
     // Create the and initialize the SSLContext
     private SSLContext createSSLContext(){
         try{
-            KeyStore keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(new FileInputStream("./src/data/miner/key-store.jks"),"pass1".toCharArray());
-
+//            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+//            keyStore.load(this.getClass().getResourceAsStream("/TestFileFolder/TRANSFER.xls"),"pass1".toCharArray());
+//            
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
             keyManagerFactory.init(keyStore, "pass1".toCharArray());

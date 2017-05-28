@@ -1,4 +1,4 @@
-package main.wallet;
+package main.miner;
 
 import java.io.File;
 import java.io.FileInputStream;
