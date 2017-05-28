@@ -51,10 +51,7 @@ public class HTTPSServer {
 
     // Create the and initialize the SSLContext
     private SSLContext createSSLContext(){
-        try{
-//            KeyStore keyStore = KeyStore.getInstance("PKCS12");
-//            keyStore.load(this.getClass().getResourceAsStream("/TestFileFolder/TRANSFER.xls"),"pass1".toCharArray());
-//            
+        try{            
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
             keyManagerFactory.init(keyStore, "pass1".toCharArray());

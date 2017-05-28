@@ -15,7 +15,8 @@ public class Wallet {
 	private ArrayList<Record> records;
 	
 	private HTTPSClient client;
-	private static final String HOST = "127.0.0.1";
+//	private static final String HOST = "127.0.0.1";
+	private static final String HOST = "10.1.1.85";
 	private static final int PORT = 9999;
 	
 	private static final String RECORDS_DIR	= 	"./src/data/wallet/records/";
