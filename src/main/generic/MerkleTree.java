@@ -5,17 +5,25 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import main.generic.*;
 
 public class MerkleTree {	
 	
 	public static byte[] root(Object[] t) throws IOException{
 		int len = t.length;
+		System.out.print("len: " + len + "\n");
 		byte[][] hashes = new byte[len][];
+		System.out.print("Hashes before " + hashes + "\n");
 		for(int i = 0; i < len; i++){
+			System.out.print("Hashes[" + i + "]" + hashes[i] + "\n");
 			hashes[i] = serialize(t[i]);
+			System.out.print("Hashes[" + i + "]" + hashes[i] + "\n");
 			hashes[i] = hash(hashes[i]);
+			System.out.print("Hashes[" + i + "]" + hashes[i] + "\n");
 			hashes[i] = hash(hashes[i]);
+			System.out.print("Hashes[" + i + "]" + hashes[i] + "\n");
 		}
+		System.out.print("Hashes after: " + hashes + "\n");
 		
 		double powerLen = Math.log(len)/Math.log(2);
 		int newLen;

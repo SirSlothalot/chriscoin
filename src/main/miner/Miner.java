@@ -43,12 +43,12 @@ public class Miner {
 		server.run();
 	}*/
 	
-	public static void main(String[] args) throws IOException{
+	public static void main(String[] args) throws NoSuchAlgorithmException, IOException{
 		// XX: Miner w = new Miner();
 		
 		// BlockChain blockchain = new BlockChain();
 		
-		TestMessage msg = new TestMessage("Alice",10);
+		TestMessage msg = new TestMessage("Alice",20);
 		TestMessage msg2 = new TestMessage("Bob",20);
 		TestMessage[] msgs = {msg,msg,msg,msg};
 		TestMessage[] msgs2 = {msg2,msg2,msg2,msg2};
