@@ -1,10 +1,14 @@
 package main.miner;
 
 import java.security.KeyStore;
+
+import main.generic.BlockChain;
+import main.generic.TestMessage;
+import main.generic.MerkleTree;
 import main.miner.HTTPSServer; // ????
-import main.miner.Keys; // ????
+import main.generic.Keys; // ????
 import main.wallet.HTTPSClient;
-import main.wallet.Message;
+import main.generic.Transaction;
 import main.wallet.Wallet;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -19,13 +23,13 @@ import java.util.ArrayList;
 
 public class Miner {
 
-	private KeyStore keyStore;
-	private UpdatesRepository updates;
+	//private KeyStore keyStore;
+	//private UpdatesRepository updates;
 
-	private HTTPSServer server;
-	private static final int PORT = 9999;
+	//private HTTPSServer server;
+	//private static final int PORT = 9999;
 	
-	Miner() {
+	/*Miner() {
 		keyStore = Keys.initKeyStore(keyStore, "pass1");
 		Keys.initKeys(keyStore, "pass1", "pass1");
 	    Keys.loadTrustedCertificates(keyStore);
@@ -37,21 +41,36 @@ public class Miner {
 	private void initServer() {
 		server = new HTTPSServer(this, keyStore, PORT);
 		server.run();
-	}
+	}*/
 	
 	public static void main(String[] args) throws IOException{
 		// XX: Miner w = new Miner();
 		
-		Blockchain blockchain = new Blockchain();
+		// BlockChain blockchain = new BlockChain();
 		
-		TestMessage msg = new TestMessage(60.0, "Alice", "Bob", 123.0);
+		TestMessage msg = new TestMessage("Alice",10);
+		TestMessage msg2 = new TestMessage("Bob",20);
+		TestMessage[] msgs = {msg,msg,msg,msg};
+		TestMessage[] msgs2 = {msg2,msg2,msg2,msg2};
+		System.out.print("Root of msgs\n");
+		System.out.print(MerkleTree.root(msgs) + "\n");
+		System.out.print("Root of msgs again\n");
+		System.out.print(MerkleTree.root(msgs) + "\n");
+		System.out.print("Root of msgs2\n");
+		System.out.print(MerkleTree.root(msgs2) + "\n");
+		System.out.print("Root of msgs2 again\n");
+		System.out.print(MerkleTree.root(msgs2) + "\n");
+		
+		
+		
 		long start = System.nanoTime();
 		int nonce = proof(msg,1);
 		long end = System.nanoTime();
 		long elapsed = end - start;
 		double seconds = (double)elapsed / 1000000000;
-		System.out.print(seconds + "\n");
+		System.out.print("Found nonce: " + nonce + " in " + seconds + " seconds."+ "\n");
 		
+		/*
 		blockchain.add(nonce, msg);
 		blockchain.add(nonce, msg);
 		blockchain.add(nonce, msg);
@@ -59,6 +78,7 @@ public class Miner {
 		System.out.print(blockchain.top.prevHash + "\n");
 		System.out.print(blockchain.top.prev.prevHash + "\n");
 		System.out.print(blockchain.top.prev.prev.prevHash + "\n");
+		*/
 		
 	}
 	/*
@@ -130,12 +150,12 @@ public class Miner {
         }
     }
 	
-	public ArrayList<Message> getUpdatesForClient(PublicKey pub) {
+	/*public ArrayList<Message> getUpdatesForClient(PublicKey pub) {
 		return updates.getUpdate(pub);
 	}
 	
 	
 	public void addUpdateForClient(PublicKey client, Message message) {
 		updates.addUpdate(client, message);
-	}
+	}*/
 }
