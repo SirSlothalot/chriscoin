@@ -1,4 +1,4 @@
-package main.wallet;
+package main.generic;
 
 
 import java.io.FileInputStream;
