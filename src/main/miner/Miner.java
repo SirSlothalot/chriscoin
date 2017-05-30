@@ -1,12 +1,19 @@
 package main.miner;
 
 import java.security.KeyStore;
-
 import main.miner.HTTPSServer;
 import main.miner.Keys;
 import main.wallet.HTTPSClient;
 import main.wallet.Message;
 import main.wallet.Wallet;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Random;
+import javax.xml.bind.DatatypeConverter;
 
 public class Miner {
 
@@ -27,7 +34,85 @@ public class Miner {
 		server.run();
 	}
 	
-	public static void main(String[] args) {
-		Miner w = new Miner();
+	public static void main(String[] args) throws IOException{
+		// XX: Miner w = new Miner();
+		// Example msg
+		TestMessage msg = new TestMessage(50.0, "Alice", "Bob", 123.0);
+		long start = System.nanoTime();
+		// Find nonce for msg
+		int nonce = proof(msg,3);
+		long end = System.nanoTime();
+		long elapsed = end - start;
+		double seconds = (double)elapsed / 1000000000;
+		System.out.print(seconds + "\n");
 	}
+	/*
+	 * Finds nonce that when hashed with msg, fufils the test given the difficulty.
+	 * Returns the int of the nonce that fufils the test.
+	 */
+	public static int proof(TestMessage msg, int difficulty) throws IOException{
+		System.out.print("Finding proof of work...\n");
+		// Random integer
+		Random rn = new Random();
+		int nonce = rn.nextInt();
+		// Infinite Loop
+		while(true){
+			// Converting data and int to byte[]
+			byte[] data1 = serialize(msg);
+			byte[] data2 = ByteBuffer.allocate(4).putInt(nonce).array();
+			// Combining data into one byte[]
+			byte[] combined = new byte[data1.length + data2.length];
+			System.arraycopy(data1,0,combined,0,data1.length);
+			System.arraycopy(data2,0,combined,data1.length,data2.length);
+			// Hashing (SHA256)
+			byte[] hash = hash(combined);
+			// Hash Test (More 0's = more difficulty, 3 ~ 2 minutes)
+			Boolean test = true;
+			for(int i = 0; i < difficulty; i++){
+				if(hash[i] != 0){test = false;}
+			}
+			if(test){
+				System.out.print(nonce);
+				System.out.print(" - ");
+				System.out.print(DatatypeConverter.printHexBinary(hash));
+				System.out.print("\n");;
+				System.out.print("Proof of work found.\n");
+				return nonce;
+			}
+			else{
+				if(nonce == 2147483647){nonce = -2147483648;}
+				else{nonce++;}
+			}
+		}
+	}
+	
+	/*
+	 * Takes a single byte[] variable and performs SHA-256 hash and returns the hash
+	 * in a byte[] format.
+	 */
+	public static byte[] hash(byte[] obj){
+		MessageDigest digest;
+		try {
+			digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest.digest(obj);
+			return hash;
+		} catch (NoSuchAlgorithmException e) {
+			return null;
+		}
+	}
+	
+
+	/*
+	 * Takes a serializable object (...implements serializable) and converts it into
+	 * a byte[0] format which is required for the hash function.
+	 */
+	public static byte[] serialize(Object obj) throws IOException {
+        try(ByteArrayOutputStream b = new ByteArrayOutputStream()){
+            try(ObjectOutputStream o = new ObjectOutputStream(b)){
+                o.writeObject(obj);
+            }
+            return b.toByteArray();
+        }
+    }
+	
 }
