@@ -15,8 +15,8 @@ public class Wallet {
 	private ArrayList<Record> records;
 	
 	private HTTPSClient client;
-//	private static final String HOST = "127.0.0.1";
-	private static final String HOST = "10.1.1.85";
+	private static final String HOST = "127.0.0.1";
+//	private static final String HOST = "10.1.1.85";
 	private static final int PORT = 9999;
 	
 	private static final String RECORDS_DIR	= 	"./src/data/wallet/records/";
@@ -39,13 +39,15 @@ public class Wallet {
 		printWallet();
 	}
 	
-	private void sendMessage(String receiver, Double amount) {
-		if (canSendAmount(amount)) { 
+	private void sendMessage(String[] receivers, Double[] amounts) {
+		if (canSendAmount(amounts)) { 
 			try {
 				PrivateKey privKey = (PrivateKey) keyStore.getKey("my-private-key", "pass1".toCharArray());
 				PublicKey pubKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
 				PublicKey receiverKey = (PublicKey) keyStore.getCertificate("peer-certificate-0").getPublicKey();
-				Message message = new Message(amount, pubKey, receiverKey, privKey);
+				
+				Message message = new Message(receivers, amounts);
+				//Message message = new Message(amount, pubKey, receiverKey, privKey);
 				
 				initClient(this, message, HOST, PORT); //change this to message, args[0], args[1]
 				
@@ -129,8 +131,12 @@ public class Wallet {
 		return bal;
 	}
 	
-	private boolean canSendAmount(Double amount) {
-		return (balance + amount) >= 0;
+	private boolean canSendAmount(Double[] amounts) {
+		double total = 0;
+		for(int i = 0; i < amounts.length; i++) {
+			total += amounts[i];
+		}
+		return (balance + total) >= 0;
 	}
 	
 	private void processAmount(double amount) {

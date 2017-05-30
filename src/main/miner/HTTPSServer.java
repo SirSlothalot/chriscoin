@@ -11,6 +11,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.security.KeyStore;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.util.ArrayList;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -21,8 +23,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-
-import main.wallet.Message;
 
 public class HTTPSServer {
     private int port = 9999;
@@ -96,7 +96,7 @@ public class HTTPSServer {
                 SSLSocket sslSocket = (SSLSocket) sslServerSocket.accept();
 
                 // Start the server thread
-                new ServerThread(sslSocket).start();
+                new ServerThread(sslSocket, miner).start();
             }
         } catch (Exception ex){
             ex.printStackTrace();
@@ -105,15 +105,19 @@ public class HTTPSServer {
 
     // Thread handling the socket from client
     static class ServerThread extends Thread {
-        private SSLSocket sslSocket = null;
+        private SSLSocket sslSocket;
+        private Miner miner;
+        
 
-        ServerThread(SSLSocket sslSocket){
+        ServerThread(SSLSocket sslSocket, Miner miner) {
             this.sslSocket = sslSocket;
+            this.miner = miner;
         }
 
         @Override
 		public void run(){
             sslSocket.setEnabledCipherSuites(sslSocket.getSupportedCipherSuites());
+            
 
             try{
                 // Start handshake
@@ -137,9 +141,27 @@ public class HTTPSServer {
                 while((line = bufferedReader.readLine()) != null){
             		System.out.println("Inut : "+line);
                     if(line.trim().equals("Request update")){
-                        //query blockchain for this user??
-                    	//determine if a message/s is waiting to be sent to user
-                    		//Yes - send message/s to user
+                    	Certificate[] peerCertificate = sslSession.getPeerCertificates();
+                    	ArrayList<Message> outgoingMessages = miner.getUpdatesForClient(peerCertificate[0].getPublicKey());
+                    	if(outgoingMessages == null) {
+                    		printWriter.println("No new messages for client");
+                            printWriter.flush();
+                    	} else {
+                    		printWriter.println("Imbound message");
+                        	printWriter.flush();
+                        	
+        	                outputStream.writeObject(outgoingMessages);
+        	                outputStream.flush();
+        	               
+        	                line = null;
+        	                while((line = bufferedReader.readLine()) != null){
+        	                    System.out.println("Inut : "+line);
+        	
+        	                    if(line.trim().equals("Client received message")){
+        	                        break;
+        	                    }
+        	                }
+                    	}
                     	printWriter.println("No new messages for client");
                         printWriter.flush();
                     	break;

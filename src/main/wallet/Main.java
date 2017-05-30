@@ -1,11 +1,12 @@
-package main.wallet;
-
-import main.miner.HTTPSServer;
-
-public class Main {
-	public static void main(String args[]) {
-		HTTPSServer server = new HTTPSServer();
-		server.run();
-		Wallet w = new Wallet();
-	}
-}
+//package main.wallet;
+//
+//
+//import main.miner.HTTPSServer;
+//import main.miner.Miner;
+//
+//public class Main {
+//	public static void main(String args[]) {
+//		Miner m = new Miner();
+//		Wallet w = new Wallet();
+//	}
+//}

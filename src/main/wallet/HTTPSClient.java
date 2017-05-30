@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.security.KeyStore;
+import java.util.ArrayList;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -83,17 +84,18 @@ public class HTTPSClient {
 
     // Thread handling the socket to server
     static class ClientThread extends Thread {
-        private SSLSocket sslSocket = null;
-        private Wallet wallet = null;
-        private Message message = null;
+        private SSLSocket sslSocket;
+        private Wallet wallet;
+        private Message outgoingMessage;
 
         ClientThread(SSLSocket sslSocket, Wallet wallet, Message message){
             this.sslSocket = sslSocket;
             this.wallet = wallet;
-            this.message = message;
+            this.outgoingMessage = message;
         }
 
-        @Override
+        @SuppressWarnings("unchecked")
+		@Override
 		public void run(){
             sslSocket.setEnabledCipherSuites(sslSocket.getSupportedCipherSuites());
 
@@ -120,17 +122,19 @@ public class HTTPSClient {
                 
                 //Receive update
                 String line = null;
-                Message receivedMessage = null;
+                ArrayList<Message> incomingMessages = null;
                 
                 
                 while((line = bufferedReader.readLine()) != null) {
             		System.out.println("Inut : "+line);
                 	if(line.trim().equals("Imbound message")) {
-                		while((receivedMessage = (Message) inputStream.readObject()) != null ){
+                		while((incomingMessages = (ArrayList<Message>) inputStream.readObject()) != null ){
                     		//update records
                     		//update balance
-                			wallet.receiveMessage(message);
-                        	receivedMessage = null;
+                			wallet.receiveMessage(incomingMessages);
+                			incomingMessages = null;
+                			printWriter.println("Client received message");
+                            printWriter.flush();
                         	break;
                 		}
                 	} else if(line.trim().equals("No new messages for client")) {
@@ -139,11 +143,11 @@ public class HTTPSClient {
                 }  
                  
                 //If there is a message to send, send it
-                if(message != null) {
+                if(outgoingMessage != null) {
                 	printWriter.println("Imbound message");
                 	printWriter.flush();
                 	
-	                outputStream.writeObject(message);
+	                outputStream.writeObject(outgoingMessage);
 	                outputStream.flush();
 	               
 	                line = null;

@@ -14,9 +14,6 @@ import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import sun.security.tools.keytool.CertAndKeyGen;
-import sun.security.x509.X500Name;
-
 public class Keys {
 
 	private static final String DATA_DIR			= 	"./src/data/wallet";
@@ -71,7 +68,7 @@ public class Keys {
 //			    X509Certificate[] 	chain 	= new X509Certificate[1];
 //			    chain[0]=cert;
 				
-//				String[] cmd = new String[]{"PATH=/bin", CERT_GENERATOR};
+//				String[] cmd = new String[]{"/bin/sh", CERT_GENERATOR};
 //				Runtime rt = Runtime.getRuntime();
 //                Process proc = rt.exec(cmd);
 //                proc.waitFor();

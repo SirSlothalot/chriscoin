@@ -14,10 +14,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import javax.xml.bind.DatatypeConverter;
+import java.security.PublicKey;
+import java.util.ArrayList;
 
 public class Miner {
 
 	private KeyStore keyStore;
+	private UpdatesRepository updates;
 
 	private HTTPSServer server;
 	private static final int PORT = 9999;
@@ -26,7 +29,9 @@ public class Miner {
 		keyStore = Keys.initKeyStore(keyStore, "pass1");
 		Keys.initKeys(keyStore, "pass1", "pass1");
 	    Keys.loadTrustedCertificates(keyStore);
+	    updates = new UpdatesRepository(); //load this from file!!! 
 	    initServer();
+	    
 	}
 	
 	private void initServer() {
@@ -125,4 +130,12 @@ public class Miner {
         }
     }
 	
+	public ArrayList<Message> getUpdatesForClient(PublicKey pub) {
+		return updates.getUpdate(pub);
+	}
+	
+	
+	public void addUpdateForClient(PublicKey client, Message message) {
+		updates.addUpdate(client, message);
+	}
 }

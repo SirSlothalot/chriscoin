@@ -10,27 +10,43 @@ import java.security.PublicKey;
 @SuppressWarnings("serial")
 class Transaction implements Serializable{
 	
-	private double amount;
-	private PublicKey senderCert;
-	private PublicKey recieverCert;
+//	private double amount;
+//	private PublicKey senderCert;
+//	private PublicKey recieverCert;
 	
-	public Transaction(double amount, PublicKey senderCert, PublicKey recieverCert) {
-		this.amount = amount;
-		this.senderCert = senderCert;
-		this.recieverCert = recieverCert;
+	private int numInputs;
+	private int numOutputs;
+	
+	private byte[] prevTransactionHashes; 	//references to previous transactions - where the money comes from (32 bytes - merkle tree?)
+	private int[]	 prevTransactionIndices; 	//the index within the previous transaction
+	
+	private PublicKey[] outAddresses;		//the addresses of receivers
+	private double[] outAmounts;			//the amounts each address is receiving
+	
+	private byte[] signature;
+	private byte[] nonce;
+	private byte[] minerHash;
+	
+	public Transaction(byte[] prevTransactionHashes, int[] prevTransactionIndices, PublicKey[] outAddresses, double[] outAmounts) {
+		this.prevTransactionHashes = prevTransactionHashes;
+		this.prevTransactionIndices = prevTransactionIndices;
+		this.outAddresses = outAddresses;
+		this.outAmounts = outAmounts;
+		this.numInputs = this.prevTransactionHashes.length;
+		this.numOutputs = this.outAddresses.length;
 	}
 	
-	public double getAmount() {
-		return amount;
+	public double[] getAmounts() {
+		return outAmounts;
 	}
 	
-	public PublicKey getSenderCert() {
-		return senderCert;
+	public PublicKey[] getRecieverCerts() {
+		return outAddresses;
 	}
 	
-	public PublicKey getRecieverCert() {
-		return recieverCert;
-	}
+//	public PublicKey[] getSenderCerts() {
+//		return senderCert;
+//	}
 	
 	public byte[] getMessage() {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -58,11 +74,11 @@ class Transaction implements Serializable{
 		return this;
 	}
 
-	@Override
-	public String toString() {
-		return "Transaction\n"
-				+ "\tAmount:       " + amount + "\n"
-				+ "\tsenderCert:   " + senderCert.toString() + "\n"
-				+ "\trecieverCert: " + recieverCert.toString();
-	}
+//	@Override
+//	public String toString() {
+//		return "Transaction\n"
+//				+ "\tAmount:       " + amount + "\n"
+//				+ "\tsenderCert:   " + senderCert.toString() + "\n"
+//				+ "\trecieverCert: " + recieverCert.toString();
+//	}
 }

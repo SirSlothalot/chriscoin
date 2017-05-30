@@ -1,4 +1,4 @@
-package main.wallet;
+package main.miner;
 
 import java.security.*;
 
@@ -12,12 +12,8 @@ public class Message extends Transaction{
 	private String minerHash;
 	
 
-//	public Message(byte inTransactionHashes[], int inTransactionIndices[], PublicKey outAddresses[], double outAmounts[], PrivateKey senderPrivKey) {
-	public Message(PublicKey outAddresses[], double outAmounts[]) {	
-		
-		
-		
-		super(inTransactionHashes, inTransactionIndices, outAddresses, outAmounts);
+	public Message(double amount, PublicKey senderCert, PublicKey recieverCert, PrivateKey senderPrivKey) {
+		super(amount, senderCert, recieverCert);
 		
 		signature = sign(super.getMessage(), senderPrivKey);
 		nonce = null;
@@ -56,14 +52,14 @@ public class Message extends Transaction{
 		return super.getTransaction();
 	}
 	
-//	@Override
-//	public String toString() {
-//		return "Message\n"
-//				+ "\tAmount:       " + super.getAmount() + "\n"
-//				+ "\tsenderCert:   " + super.getSenderCert() + "\n"
-//				+ "\trecieverCert: " + super.getRecieverCert() + "\n"
-//				+ "\tsignature:    " + new String(Hex.encode(signature));
-//	}
+	@Override
+	public String toString() {
+		return "Message\n"
+				+ "\tAmount:       " + super.getAmount() + "\n"
+				+ "\tsenderCert:   " + super.getSenderCert() + "\n"
+				+ "\trecieverCert: " + super.getRecieverCert() + "\n"
+				+ "\tsignature:    " + new String(Hex.encode(signature));
+	}
 
 //	private String sign() throws NoSuchAlgorithmException {
 //		MessageDigest digest = MessageDigest.getInstance("SHA-256");
