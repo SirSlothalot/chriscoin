@@ -1,8 +1,8 @@
 package main.miner;
 
 import java.security.KeyStore;
-import main.miner.HTTPSServer;
-import main.miner.Keys;
+import main.miner.HTTPSServer; // ????
+import main.miner.Keys; // ????
 import main.wallet.HTTPSClient;
 import main.wallet.Message;
 import main.wallet.Wallet;
@@ -36,15 +36,25 @@ public class Miner {
 	
 	public static void main(String[] args) throws IOException{
 		// XX: Miner w = new Miner();
-		// Example msg
-		TestMessage msg = new TestMessage(50.0, "Alice", "Bob", 123.0);
+		
+		Blockchain blockchain = new Blockchain();
+		
+		TestMessage msg = new TestMessage(60.0, "Alice", "Bob", 123.0);
 		long start = System.nanoTime();
-		// Find nonce for msg
-		int nonce = proof(msg,3);
+		int nonce = proof(msg,1);
 		long end = System.nanoTime();
 		long elapsed = end - start;
 		double seconds = (double)elapsed / 1000000000;
 		System.out.print(seconds + "\n");
+		
+		blockchain.add(nonce, msg);
+		blockchain.add(nonce, msg);
+		blockchain.add(nonce, msg);
+		
+		System.out.print(blockchain.top.prevHash + "\n");
+		System.out.print(blockchain.top.prev.prevHash + "\n");
+		System.out.print(blockchain.top.prev.prev.prevHash + "\n");
+		
 	}
 	/*
 	 * Finds nonce that when hashed with msg, fufils the test given the difficulty.
