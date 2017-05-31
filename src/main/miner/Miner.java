@@ -1,15 +1,8 @@
 package main.miner;
 
-import java.security.KeyStore;
-
-import main.generic.BlockChain;
+import main.generic.Hasher;
 import main.generic.TestMessage;
 import main.generic.MerkleTree;
-import main.miner.HTTPSServer; // ????
-import main.generic.Keys; // ????
-import main.wallet.HTTPSClient;
-import main.generic.Transaction;
-import main.wallet.Wallet;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -17,9 +10,6 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
-import javax.xml.bind.DatatypeConverter;
-import java.security.PublicKey;
-import java.util.ArrayList;
 
 public class Miner {
 
@@ -47,19 +37,34 @@ public class Miner {
 		// XX: Miner w = new Miner();
 		
 		// BlockChain blockchain = new BlockChain();
+
 		
 		TestMessage msg = new TestMessage("Alice",20);
 		TestMessage msg2 = new TestMessage("Bob",20);
 		TestMessage[] msgs = {msg,msg,msg,msg};
-		TestMessage[] msgs2 = {msg2,msg2,msg2,msg2};
+		TestMessage[] msgs2 = {msg2, msg2, msg2, msg2, msg2};
+		int size = 1000;
+		TestMessage[] msgs3 = new TestMessage[size];
+		for (int i = 0; i < size; i++) {
+			if (i % 3 == 0) {
+				msgs3[i] = msg;
+			} else {
+				msgs3[i] = msg2;
+			}
+			
+		}
 		System.out.print("Root of msgs\n");
-		System.out.print(MerkleTree.root(msgs) + "\n");
+		System.out.print(Hasher.bytesToHex(MerkleTree.root(msgs)) + "\n");
 		System.out.print("Root of msgs again\n");
-		System.out.print(MerkleTree.root(msgs) + "\n");
+		System.out.print(Hasher.bytesToHex(MerkleTree.root(msgs)) + "\n");
 		System.out.print("Root of msgs2\n");
-		System.out.print(MerkleTree.root(msgs2) + "\n");
+		System.out.print(Hasher.bytesToHex(MerkleTree.root(msgs2)) + "\n");
 		System.out.print("Root of msgs2 again\n");
-		System.out.print(MerkleTree.root(msgs2) + "\n");
+		System.out.print(Hasher.bytesToHex(MerkleTree.root(msgs2)) + "\n");
+		System.out.print("Root of msgs3\n");
+		System.out.print(Hasher.bytesToHex(MerkleTree.root(msgs3)) + "\n");
+		System.out.print("Root of msgs3 again\n");
+		System.out.print(Hasher.bytesToHex(MerkleTree.root(msgs3)) + "\n");
 		
 		
 		
@@ -109,7 +114,7 @@ public class Miner {
 			if(test){
 				System.out.print(nonce);
 				System.out.print(" - ");
-				System.out.print(DatatypeConverter.printHexBinary(hash));
+				System.out.print(Hasher.bytesToHex(hash));
 				System.out.print("\n");;
 				System.out.print("Proof of work found.\n");
 				return nonce;
