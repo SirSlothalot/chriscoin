@@ -1,11 +1,9 @@
 package main.wallet;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.security.KeyStore;
@@ -26,9 +24,9 @@ public class HTTPSClient {
     
     private KeyStore keyStore;
     private Wallet wallet;
-    private Message message;
+    private Object message;
 
-    HTTPSClient(Wallet wallet, Message message, KeyStore keyStore, String host, int port){
+    HTTPSClient(Wallet wallet, Object message, KeyStore keyStore, String host, int port){
         this.wallet = wallet;
     	this.message = message;
     	this.host = host;
@@ -86,9 +84,9 @@ public class HTTPSClient {
     static class ClientThread extends Thread {
         private SSLSocket sslSocket;
         private Wallet wallet;
-        private Message outgoingMessage;
+        private Object outgoingMessage;
 
-        ClientThread(SSLSocket sslSocket, Wallet wallet, Message message){
+        ClientThread(SSLSocket sslSocket, Wallet wallet, Object message){
             this.sslSocket = sslSocket;
             this.wallet = wallet;
             this.outgoingMessage = message;
@@ -122,16 +120,16 @@ public class HTTPSClient {
                 
                 //Receive update
                 String line = null;
-                ArrayList<Message> incomingMessages = null;
+                ArrayList<Object> incomingMessages = null;
                 
                 
                 while((line = bufferedReader.readLine()) != null) {
             		System.out.println("Inut : "+line);
                 	if(line.trim().equals("Imbound message")) {
-                		while((incomingMessages = (ArrayList<Message>) inputStream.readObject()) != null ){
+                		while((incomingMessages = (ArrayList<Object>) inputStream.readObject()) != null ){
                     		//update records
                     		//update balance
-                			wallet.receiveMessage(incomingMessages);
+//                			wallet.receiveMessage(incomingMessages);
                 			incomingMessages = null;
                 			printWriter.println("Client received message");
                             printWriter.flush();
