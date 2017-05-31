@@ -51,8 +51,10 @@ public class Wallet {
 	// PublicKey receiverKey = (PublicKey)
 	// keyStore.getCertificate("peer-certificate-0").getPublicKey();
 
-	public synchronized void receiveMessage(Transaction message) {
-		addRecord(message);
+	public synchronized void receiveMessage(ArrayList<Transaction> message) {
+		for (Transaction trans : message) {
+			addRecord(trans);
+		}
 	}
 	
 	public synchronized void receiveMessage(BlockHeaderChain message) {

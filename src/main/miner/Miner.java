@@ -3,6 +3,7 @@ package main.miner;
 import main.generic.Hasher;
 import main.generic.TestMessage;
 import main.generic.Transaction;
+import main.wallet.Wallet;
 import main.generic.MerkleTree;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -11,9 +12,11 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Miner {
 
+	private static boolean running;
 	// private KeyStore keyStore;
 	// private UpdatesRepository updates;
 
@@ -31,56 +34,6 @@ public class Miner {
 	 * private void initServer() { server = new HTTPSServer(this, keyStore,
 	 * PORT); server.run(); }
 	 */
-
-	public static void main(String[] args) throws NoSuchAlgorithmException, IOException {
-		// XX: Miner w = new Miner();
-
-		// BlockChain blockchain = new BlockChain();
-
-		TestMessage msg = new TestMessage("Alice", 20);
-		TestMessage msg2 = new TestMessage("Bob", 20);
-		
-		for (int j = 2; j < 100; j++) {
-			TestMessage[] msgs3 = new TestMessage[j];
-			for (int i = 0; i < j; i++) {
-				if (i % 2 == 0) {
-					msgs3[i] = msg;
-				} else {
-					msgs3[i] = msg2;
-				}
-				
-			}
-			System.out.print(j + " -- ");
-			boolean temp = MerkleTree.compareMerkle(msgs3, msg2);
-			System.out.println(temp);
-		}
-		
-		Transaction trans = new Transaction();
-		trans.addInput(Hasher.hash("temp"), 0);
-		trans.addInput(Hasher.hash("temp2"), 4);
-		trans.addInput(Hasher.hash("temp"), 1);
-		
-		System.out.println(trans.toString());
-
-
-
-//		long start = System.nanoTime();
-//		int nonce = proof(msg, 1);
-//		long end = System.nanoTime();
-//		long elapsed = end - start;
-//		double seconds = (double) elapsed / 1000000000;
-//		System.out.print("Found nonce: " + nonce + " in " + seconds + " seconds." + "\n");
-
-		/*
-		 * blockchain.add(nonce, msg); blockchain.add(nonce, msg);
-		 * blockchain.add(nonce, msg);
-		 * 
-		 * System.out.print(blockchain.top.prevHash + "\n");
-		 * System.out.print(blockchain.top.prev.prevHash + "\n");
-		 * System.out.print(blockchain.top.prev.prev.prevHash + "\n");
-		 */
-
-	}
 
 	/*
 	 * Finds nonce that when hashed with msg, fufils the test given the
@@ -163,4 +116,21 @@ public class Miner {
 	 * public void addUpdateForClient(PublicKey client, Message message) {
 	 * updates.addUpdate(client, message); }
 	 */
+	
+	private void parseCommand(String command) {
+		
+	}
+	
+	public static void main(String[] args) {
+
+		Miner miner = new Miner();
+		Scanner scanner = new Scanner(System.in);
+		running = true;
+		while (running) {
+			String command = scanner.nextLine();
+			miner.parseCommand(command);
+		}
+		scanner.close();
+		System.exit(0);
+	}
 }
