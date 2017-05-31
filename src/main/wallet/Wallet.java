@@ -26,8 +26,9 @@ public class Wallet {
 
 
 	Wallet() {
+		System.out.println("-- Wallet Initialising --");
 		records = loadWallet();
-
+		System.out.println("-- Wallet Initialised --");
 	}
 
 	private boolean refresh() {
@@ -102,17 +103,12 @@ public class Wallet {
 		}
 	}
 
-//	private void addRecord(Transaction trans) {
-//		records.add(new Record(trans.getAmount(), trans.getSenderCert(), trans.getRecieverCert()));
-//	}
-
-	private void updateBalance(Double amount) {
-		//check if sender or receiver
-		//deduct or add amount
+	private void addRecord(Transaction trans) {
+		records.add(trans);
 	}
 
 	private void printBalance() {
-		System.out.println("Balance: " + calcBalance());
+		System.out.println("Balance: " + calcBalance() + " CC");
 	}
 
 //	private void printWallet() {
@@ -124,7 +120,7 @@ public class Wallet {
 
 	private void saveWallet() {
 		try {
-			OutputStream file = new FileOutputStream(RECORDS_DIR + "records.ser");
+			OutputStream file = new FileOutputStream(DESKTOP_DIR + RECORDS_DIR + "records.ser");
 			OutputStream buffer = new BufferedOutputStream(file);
 		    ObjectOutput output = new ObjectOutputStream(buffer);
 		    output.writeObject(records);
@@ -172,6 +168,7 @@ public class Wallet {
 		// TODO
 		return bal;
 	}
+<<<<<<< Updated upstream
 
 	private boolean canSendAmount(Double[] amounts) {
 		// TODO
@@ -182,6 +179,13 @@ public class Wallet {
 		// TODO
 	}
 
+=======
+	
+	private boolean canSendAmount(Double amounts) {
+		return false;
+	}
+	
+>>>>>>> Stashed changes
 	private void initClient(Wallet wallet, Object message, String host, int port) {
 		client = new HTTPSClient(wallet, message, keyStore, host, port);
 		client.run();
@@ -227,7 +231,9 @@ public class Wallet {
 	}
 
 	private void setHost(String newHost) {
-		// TODO Auto-generated method stub
+		// TODO check if ip string
+		
+		
 		String oldHost = host;
 		host = newHost;
 		if (!refresh()) {
@@ -267,6 +273,7 @@ public class Wallet {
 			wallet.parseCommand(command);
 		}
 		scanner.close();
+		wallet.saveWallet();
 		System.exit(0);
 	}
 

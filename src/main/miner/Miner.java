@@ -2,6 +2,7 @@ package main.miner;
 
 import main.generic.Hasher;
 import main.generic.TestMessage;
+import main.generic.Transaction;
 import main.generic.MerkleTree;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -53,6 +54,15 @@ public class Miner {
 			boolean temp = MerkleTree.compareMerkle(msgs3, msg2);
 			System.out.println(temp);
 		}
+		
+		Transaction trans = new Transaction();
+		trans.addInput(Hasher.hash("temp"), 0);
+		trans.addInput(Hasher.hash("temp2"), 4);
+		trans.addInput(Hasher.hash("temp"), 1);
+		
+		System.out.println(trans.toString());
+
+
 
 //		long start = System.nanoTime();
 //		int nonce = proof(msg, 1);

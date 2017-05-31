@@ -3,6 +3,7 @@ package main.generic;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.util.ArrayList;
 
 @SuppressWarnings("serial")
@@ -12,13 +13,13 @@ public class Transaction implements Serializable {
 	ArrayList<Input> ins;
 	
 	int outputCounter;
-	ArrayList<Double> outs;
+	ArrayList<Output> outs;
 
 	public Transaction() {
 		this.inputCounter = 0;
 		this.ins = new ArrayList<Input>();
 		this.outputCounter = 0;
-		this.outs = new ArrayList<Double>();
+		this.outs = new ArrayList<Output>();
 	}
 
 	public void addInput(byte[] parentTransactionHash, int parentOutputIndex) {
@@ -26,8 +27,8 @@ public class Transaction implements Serializable {
 		inputCounter++;
 	}
 
-	public void addOut(Double amount) {
-		outs.add(amount);
+	public void addOut(Double amount, PublicKey reciever) {
+		outs.add(new Output(amount, reciever));
 		outputCounter++;
 	}
 	
@@ -42,7 +43,7 @@ public class Transaction implements Serializable {
 			}
 			temp += "Outputs ... Count: " + outputCounter + "\n";
 			for (int i = 0; i < outputCounter; i++) {
-				temp += "\tIndex: " + i + " ... Amount: " + outs.get(i) + " CC\n";
+				temp += outs.get(i).toString() + "\n";
 			}
 			temp += "-- End Transaction --";
 		} catch (NoSuchAlgorithmException | IOException e) {
@@ -77,6 +78,35 @@ public class Transaction implements Serializable {
 			
 			temp = "\tParent Transaction Hash: " + Hasher.bytesToHex(parentTransactionHash) + "\n"
 					+ "\tParent Output Index: " + parentOutputIndex;
+			
+			return temp;
+		}
+
+	}
+	
+	private class Output implements Serializable {
+		private double amount;
+		PublicKey pubKey;
+		
+		public Output(double amount, PublicKey pubKey) {
+			this.amount = amount;
+			this.pubKey = pubKey;
+		}
+
+		public double getAmount() {
+			return amount;
+		}
+
+		public PublicKey getPubKey() {
+			return pubKey;
+		}
+		
+		@Override
+		public String toString() {
+			String temp;
+			
+			temp = "\tAmount: " + amount + " CC\n"
+					+ "\tReciever PubKey: " + pubKey.toString();
 			
 			return temp;
 		}
