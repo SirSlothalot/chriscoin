@@ -9,45 +9,45 @@ import java.util.Scanner;
 
 import main.generic.*;
 public class Wallet {
-	
+
 	private KeyStore keyStore;
-	
+
 	private ArrayList<Transaction> records;
-	
+
 	private HTTPSClient client;
 	private static String host = "127.0.0.1";
-	
+
 	private static final int PORT = 9999;
-	
+
 	private static final String DESKTOP_DIR	= System.getProperty("user.home") + "/Desktop/ChrisCoin";
 	private static final String RECORDS_DIR = "/MyRecords";
-	
+
 	static boolean running;
 
-	
+
 	Wallet() {
 		records = loadWallet();
-		
+
 	}
-	
+
 	private boolean refresh() {
 		return false;
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 //	private void sendMessage(String[] receivers, Double[] amounts) {
-//		if (canSendAmount(amounts)) { 
+//		if (canSendAmount(amounts)) {
 //			try {
 //				PrivateKey privKey = (PrivateKey) keyStore.getKey("my-private-key", "pass1".toCharArray());
 //				PublicKey pubKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
 //				PublicKey receiverKey = (PublicKey) keyStore.getCertificate("peer-certificate-0").getPublicKey();
-//				
+//
 //				Message message = new Message(receivers, amounts);
 //				//Message message = new Message(amount, pubKey, receiverKey, privKey);
-//				
+//
 //				initClient(this, message, HOST, PORT); //change this to message, args[0], args[1]
-//				
+//
 //				addRecord(message.getTransaction());
 //				System.out.println(message.toString());
 //				processAmount(amount);
@@ -59,39 +59,69 @@ public class Wallet {
 //			System.err.println("Not enough money to send");
 //		}
 //	}
-	
+
 	public synchronized void receiveMessage(Object message) {
 //		check who is receiver/sender
 //		records.add(new Record(sender, publicKey, amount));
 //		updateBalance(amount);
 		// TODO
 	}
-	
+
 	private void newTransaction(String amount, String reciever) {
-		// TODO Auto-generated method stub
-		
+		Double dAmount = Double.ParseDouble(amount);
+		if(dAmount == null) {
+			System.out.println("Transaction failed. Amount must be a number.");
+			return;
+		}
+		Transaction t = new Transaction();
+
+
+		ArrayList<Integer> parTransIndex = new ArrayList<Integer>();
+		ArrayList<byte[]> parTransHash = new ArrayList<byte[]>();
+		findTransactions(parTransHash, parTransIndex, dAmount);
+
+		if(parentTransactions != null) {
+			for(int i = 0; i < parTransHash.size(); i++) {
+				t.addInput(parTransHash.get(i), parTransIndex.get(i));
+			}
+		} else {
+			System.out.println("Insufficient funds to make payment of " + amount + "chriscoins.");
+		}
+
 	}
-	
+
+	private void findTransactions(ArrayList<Integer> parTransIndex, ArrayList<byte[]> parTransHash, Double amount) {
+		Double amountFound = 0.0;
+		int index = -1;
+
+
+		for(int i = 0; i < records.size(); i++) {
+			index = records.get(i).indexOfReceiver();
+
+			if(amountFound >= amount) {break;}
+		}
+	}
+
 //	private void addRecord(Transaction trans) {
 //		records.add(new Record(trans.getAmount(), trans.getSenderCert(), trans.getRecieverCert()));
 //	}
-	
+
 	private void updateBalance(Double amount) {
 		//check if sender or receiver
 		//deduct or add amount
 	}
-	
+
 	private void printBalance() {
 		System.out.println("Balance: " + calcBalance());
 	}
-	
+
 //	private void printWallet() {
 //		printBalance();
 //		for(Record r : records) {
 //			System.out.println(r.toString());
 //		}
 //	}
-	
+
 	private void saveWallet() {
 		try {
 			OutputStream file = new FileOutputStream(RECORDS_DIR + "records.ser");
@@ -105,7 +135,7 @@ public class Wallet {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private ArrayList<Transaction> loadWallet() {
 		intialiseDirs();
@@ -130,41 +160,41 @@ public class Wallet {
 			return new ArrayList<Transaction>();
 		}
 	}
-	
+
 	private static void intialiseDirs() {
 		File dir = new File(DESKTOP_DIR + RECORDS_DIR);
 		dir.mkdirs();
 	}
 
-	
+
 	public double calcBalance() {
 		double bal = 0;
 		// TODO
 		return bal;
 	}
-	
+
 	private boolean canSendAmount(Double[] amounts) {
 		// TODO
 		return false;
 	}
-	
+
 	private void processAmount(double amount) {
 		// TODO
 	}
-	
+
 	private void initClient(Wallet wallet, Object message, String host, int port) {
 		client = new HTTPSClient(wallet, message, keyStore, host, port);
 		client.run();
 	}
-	
+
 	private void parseCommand(String command) {
 		String[] commands = command.split(" ");
-		
+
 		if (commands.length < 1) {
 			return;
 		}
 		commands[0].toLowerCase();
-		
+
 		if (commands[0].equals("transaction")) {
 			if (commands.length > 1) {
 				if (commands[1].equals("new")) {
@@ -193,7 +223,7 @@ public class Wallet {
 
 	private void viewRecords() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	private void setHost(String newHost) {
@@ -224,11 +254,11 @@ public class Wallet {
 		System.out.println("- 'ip' = ip of host");
 		System.out.println("exit");
 		System.out.println("- exits the program");
-		
+
 	}
-	
+
 	public static void main(String[] args) {
-		
+
 		Wallet wallet = new Wallet();
 		Scanner scanner = new Scanner(System.in);
 		running = true;
