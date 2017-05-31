@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.Random;
 
 @SuppressWarnings("serial")
 public class BlockChain implements Serializable {
@@ -18,6 +19,9 @@ public class BlockChain implements Serializable {
 
 	public boolean put(Block block) {
 		try {
+			Random rn = new Random();
+			int nonce = rn.nextInt();
+			block.genHeader(topBlockHash, nonce, 3);
 			byte[] key = Hasher.hash(block.getBlockHeader());
 			blockChain.put(key, block);
 			topBlockHash = key;

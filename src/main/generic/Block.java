@@ -18,10 +18,14 @@ public class Block {
 
 	}
 
-	public void genHeader(byte[] prevBlockHash, byte[] nonce, int diffTime) {
-
-		// blockHeader = new BlockHeader(prevBlockHash, merkleRoot, diffTime,
-		// nonce);
+	public void genHeader(byte[] prevBlockHash, int nonce, int diffTime) {
+		Transaction[] trans = new Transaction[transactions.size()];
+		transactions.values().toArray(trans);
+		try {
+			blockHeader = new BlockHeader(prevBlockHash, MerkleTree.root(trans), diffTime, nonce);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 	}
 

@@ -9,9 +9,9 @@ public class BlockHeader implements Serializable {
 	private byte[] merkleRoot;
 	private Date timeStamp;
 	private int difficultyTime;
-	private byte[] nonce;
+	private int nonce;
 
-	public BlockHeader(byte[] prevBlockHash, byte[] merkleRoot, int diffTime, byte[] nonce) {
+	public BlockHeader(byte[] prevBlockHash, byte[] merkleRoot, int diffTime, int nonce) {
 		this.prevBlockHeadHash = prevBlockHash;
 		this.merkleRoot = merkleRoot;
 		timeStamp = new Date();
@@ -23,7 +23,7 @@ public class BlockHeader implements Serializable {
 		return timeStamp;
 	}
 
-	public byte[] getNonce() {
+	public int getNonce() {
 		return nonce;
 	}
 
