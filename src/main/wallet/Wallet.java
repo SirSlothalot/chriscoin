@@ -165,7 +165,10 @@ public class Wallet {
 
 	public double calcBalance() {
 		double bal = 0;
-		// TODO
+		refresh();
+		for (int i = 0; i < records.size(); i++) {
+			
+		}
 		return bal;
 	}
 	
@@ -199,7 +202,6 @@ public class Wallet {
 		} else if (commands[0].equals("refresh")) {
 			refresh();
 		} else if (commands[0].equals("balance")) {
-			refresh();
 			System.out.println("Your balance: " + calcBalance());
 		} else if (commands[0].equals("host")) {
 			if (commands.length > 1) {

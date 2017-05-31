@@ -32,6 +32,31 @@ public class Transaction implements Serializable {
 		outputCounter++;
 	}
 	
+	public byte[] getParentHash(int inIndex) {
+		return ins.get(inIndex).getParentTransactionHash();
+	}
+	
+	public int getParentOutputIndex(int inIndex) {
+		return ins.get(inIndex).getParentOutputIndex();
+	}
+	
+	public double getOutputAmount(int outIndex) {
+		return outs.get(outIndex).getAmount();
+	}
+	
+	public PublicKey getRecieverKey(int outIndex) {
+		return outs.get(outIndex).getPubKey();
+	}
+	
+	public int getOutputIndex(PublicKey pubKey) {
+		for (int i = 0; i < outputCounter; i++) {
+			if (getRecieverKey(i).equals(pubKey)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
 	@Override
 	public String toString() {
 		String temp;
