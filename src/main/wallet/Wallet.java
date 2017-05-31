@@ -2,12 +2,14 @@ package main.wallet;
 
 import java.io.*;
 import java.security.KeyStore;
-import java.security.PrivateKey;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import main.generic.*;
+
 public class Wallet {
 
 	private KeyStore keyStore;
@@ -19,11 +21,10 @@ public class Wallet {
 
 	private static final int PORT = 9999;
 
-	private static final String DESKTOP_DIR	= System.getProperty("user.home") + "/Desktop/ChrisCoin";
+	
 	private static final String RECORDS_DIR = "/MyRecords";
 
 	static boolean running;
-
 
 	Wallet() {
 		System.out.println("-- Wallet Initialising --");
@@ -32,75 +33,109 @@ public class Wallet {
 	}
 
 	private boolean refresh() {
-		return false;
-		// TODO Auto-generated method stub
-
+		
+		client = new HTTPSClient(this, null, keyStore, host, PORT);
+		if (client.run()) {
+			return true;
+		} else {
+			System.err.println("Can't connect to server");
+			return false;
+		}
+		
 	}
 
-//	private void sendMessage(String[] receivers, Double[] amounts) {
-//		if (canSendAmount(amounts)) {
-//			try {
-//				PrivateKey privKey = (PrivateKey) keyStore.getKey("my-private-key", "pass1".toCharArray());
-//				PublicKey pubKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
-//				PublicKey receiverKey = (PublicKey) keyStore.getCertificate("peer-certificate-0").getPublicKey();
-//
-//				Message message = new Message(receivers, amounts);
-//				//Message message = new Message(amount, pubKey, receiverKey, privKey);
-//
-//				initClient(this, message, HOST, PORT); //change this to message, args[0], args[1]
-//
-//				addRecord(message.getTransaction());
-//				System.out.println(message.toString());
-//				processAmount(amount);
-//				printBalance();
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//			}
-//		} else {
-//			System.err.println("Not enough money to send");
-//		}
-//	}
+	// PrivateKey privKey = (PrivateKey) keyStore.getKey("my-private-key",
+	// "pass1".toCharArray());
+	// PublicKey pubKey = (PublicKey)
+	// keyStore.getCertificate("my-certificate").getPublicKey();
+	// PublicKey receiverKey = (PublicKey)
+	// keyStore.getCertificate("peer-certificate-0").getPublicKey();
 
-	public synchronized void receiveMessage(Object message) {
-//		check who is receiver/sender
-//		records.add(new Record(sender, publicKey, amount));
-//		updateBalance(amount);
+	public synchronized void receiveMessage(Transaction message) {
+		addRecord(message);
+	}
+	
+	public synchronized void receiveMessage(BlockHeaderChain message) {
+
 		// TODO
+		
+	}
+	
+	public synchronized void receiveMessage(BlockHeader message) {
+
+		// TODO
+		
 	}
 
 	private void newTransaction(String amount, String reciever) {
-		Double dAmount = Double.ParseDouble(amount);
-		if(dAmount == null) {
-			System.out.println("Transaction failed. Amount must be a number.");
+		Double dAmount;
+		try {
+			dAmount = Double.parseDouble(amount);
+		} catch (NumberFormatException e) {
+			System.err.println("Transaction failed. Amount must be a number");
 			return;
 		}
+		PublicKey recieverKey, myKey;
+		try {
+			recieverKey = (PublicKey) keyStore.getCertificate(reciever).getPublicKey();
+			myKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
+		} catch (Exception e) {
+			System.out.println("Could not find payee '" + reciever + "'");
+			return;
+		}
+
 		Transaction t = new Transaction();
 
+		ArrayList<Integer> parTransIndexs = new ArrayList<Integer>();
+		ArrayList<byte[]> parTransHashes = new ArrayList<byte[]>();
 
-		ArrayList<Integer> parTransIndex = new ArrayList<Integer>();
-		ArrayList<byte[]> parTransHash = new ArrayList<byte[]>();
-		findTransactions(parTransHash, parTransIndex, dAmount);
+		double total = findTransactions(parTransIndexs, parTransHashes, dAmount);
 
-		if(parentTransactions != null) {
-			for(int i = 0; i < parTransHash.size(); i++) {
-				t.addInput(parTransHash.get(i), parTransIndex.get(i));
-			}
-		} else {
-			System.out.println("Insufficient funds to make payment of " + amount + "chriscoins.");
+		if (total == -1) {
+			double balTemp = calcBalance();
+			System.out.println("Could not send ChrisCoins!");
+			System.out.println("\tYour Balance: " + balTemp + " CC");
+			System.out.println("\tSend Amount: " + dAmount + " CC");
+			return;
 		}
 
+		for (int i = 0; i < parTransIndexs.size(); i++) {
+			t.addInput(parTransHashes.get(i), parTransIndexs.get(i));
+		}
+		t.addOut(dAmount, recieverKey);
+		t.addOut(total - dAmount, myKey);
 	}
 
-	private void findTransactions(ArrayList<Integer> parTransIndex, ArrayList<byte[]> parTransHash, Double amount) {
+	private double findTransactions(ArrayList<Integer> parTransIndexs, ArrayList<byte[]> parTransHashes,
+			Double amount) {
+
 		Double amountFound = 0.0;
-		int index = -1;
+		PublicKey pubKey;
 
-
-		for(int i = 0; i < records.size(); i++) {
-			index = records.get(i).indexOfReceiver();
-
-			if(amountFound >= amount) {break;}
+		try {
+			pubKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
+		} catch (KeyStoreException e) {
+			e.printStackTrace();
+			return -1;
 		}
+		for (int i = 0; i < records.size(); i++) {
+			int outIndex = records.get(i).getOutputIndex(pubKey);
+			if (outIndex != -1) {
+				parTransIndexs.add(outIndex);
+				try {
+					parTransHashes.add(Hasher.hash(records.get(i)));
+				} catch (NoSuchAlgorithmException | IOException e) {
+					e.printStackTrace();
+				}
+				amountFound += records.get(i).getOutputAmount(outIndex);
+			}
+			if (amountFound > amount) {
+				// TODO transaction fee
+				return amountFound;
+			}
+		}
+		return -1;
+
 	}
 
 	private void addRecord(Transaction trans) {
@@ -111,22 +146,15 @@ public class Wallet {
 		System.out.println("Balance: " + calcBalance() + " CC");
 	}
 
-//	private void printWallet() {
-//		printBalance();
-//		for(Record r : records) {
-//			System.out.println(r.toString());
-//		}
-//	}
-
 	private void saveWallet() {
 		try {
-			OutputStream file = new FileOutputStream(DESKTOP_DIR + RECORDS_DIR + "records.ser");
+			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + RECORDS_DIR + "records.ser");
 			OutputStream buffer = new BufferedOutputStream(file);
-		    ObjectOutput output = new ObjectOutputStream(buffer);
-		    output.writeObject(records);
-		    output.close();
-		    System.out.println("Records saved..." + "\tRecord size: " + records.size());
-		    printBalance();
+			ObjectOutput output = new ObjectOutputStream(buffer);
+			output.writeObject(records);
+			output.close();
+			System.out.println("Records saved..." + "\tRecord size: " + records.size());
+			printBalance();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -137,14 +165,14 @@ public class Wallet {
 		intialiseDirs();
 		ObjectInput input = null;
 		try {
-			InputStream file = new FileInputStream(DESKTOP_DIR + RECORDS_DIR + "records.ser");
-		    InputStream buffer = new BufferedInputStream(file);
-			input = new ObjectInputStream (buffer);
+			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + RECORDS_DIR + "records.ser");
+			InputStream buffer = new BufferedInputStream(file);
+			input = new ObjectInputStream(buffer);
 			ArrayList<Transaction> temp = (ArrayList<Transaction>) input.readObject();
-		    input.close();
-		    System.out.println("Records loaded..." + "\tRecord size: " + records.size());
-		    return temp;
-		} catch(ClassNotFoundException e) {
+			input.close();
+			System.out.println("Records loaded..." + "\tRecord size: " + temp.size());
+			return temp;
+		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			try {
 				input.close();
@@ -152,33 +180,44 @@ public class Wallet {
 				e1.printStackTrace();
 			}
 			return null;
-		} catch(IOException e) {
+		} catch (IOException e) {
 			return new ArrayList<Transaction>();
 		}
 	}
 
 	private static void intialiseDirs() {
-		File dir = new File(DESKTOP_DIR + RECORDS_DIR);
+		File dir = new File(Constants.DESKTOP_DIR + RECORDS_DIR);
 		dir.mkdirs();
+		dir = new File(Constants.DESKTOP_DIR + Constants.TRUSTED_CERTS_DIR);
+		dir.mkdirs();
+		
+		
 	}
-
 
 	public double calcBalance() {
 		double bal = 0;
-		refresh();
-		for (int i = 0; i < records.size(); i++) {
-			
-		}
-		return bal;
-	}
-	
-	private boolean canSendAmount(Double amounts) {
-		return false;
-	}
+		if (refresh()) {
 
-	private void initClient(Wallet wallet, Object message, String host, int port) {
-		client = new HTTPSClient(wallet, message, keyStore, host, port);
-		client.run();
+			PublicKey pubKey;
+			try {
+				pubKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
+			} catch (KeyStoreException e) {
+				e.printStackTrace();
+				return -1;
+			}
+			for (int i = 0; i < records.size(); i++) {
+				int outIndex = records.get(i).getOutputIndex(pubKey);
+				if (outIndex != -1) {
+
+					bal += records.get(i).getOutputAmount(outIndex);
+				}
+			}
+			return bal;
+		} else {
+			System.out.println("Cannot access balance if not online");
+			return 0;
+		}
+
 	}
 
 	private void parseCommand(String command) {
@@ -194,10 +233,14 @@ public class Wallet {
 				if (commands[1].equals("new")) {
 					if (commands.length > 3) {
 						newTransaction(commands[2], commands[3]);
+					} else {
+						System.out.println("Must have input 'amount' and 'reciever'");
 					}
 				} else if (commands[1].equals("view")) {
 					viewRecords();
 				}
+			} else {
+				System.out.println("Must have input 'new' or 'view'");
 			}
 		} else if (commands[0].equals("refresh")) {
 			refresh();
@@ -206,6 +249,8 @@ public class Wallet {
 		} else if (commands[0].equals("host")) {
 			if (commands.length > 1) {
 				setHost(commands[1]);
+			} else {
+				System.out.println("Must have input 'ip'");
 			}
 		} else if (commands[0].equals("exit")) {
 			running = false;
@@ -215,14 +260,18 @@ public class Wallet {
 	}
 
 	private void viewRecords() {
-		// TODO Auto-generated method stub
+		if (records.size() == 0) {
+			System.out.println("No records to show");
+		}
+		for (int i = 0; i < records.size(); i++) {
+			System.out.println(records.get(i).toString());
+		}
 
 	}
 
 	private void setHost(String newHost) {
 		// TODO check if ip string
-		
-		
+
 		String oldHost = host;
 		host = newHost;
 		if (!refresh()) {
