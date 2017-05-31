@@ -168,24 +168,11 @@ public class Wallet {
 		// TODO
 		return bal;
 	}
-<<<<<<< Updated upstream
-
-	private boolean canSendAmount(Double[] amounts) {
-		// TODO
-		return false;
-	}
-
-	private void processAmount(double amount) {
-		// TODO
-	}
-
-=======
 	
 	private boolean canSendAmount(Double amounts) {
 		return false;
 	}
-	
->>>>>>> Stashed changes
+
 	private void initClient(Wallet wallet, Object message, String host, int port) {
 		client = new HTTPSClient(wallet, message, keyStore, host, port);
 		client.run();
