@@ -11,6 +11,8 @@ import java.util.Scanner;
 import main.generic.*;
 
 public class Wallet {
+	
+	private static final String RECORDS_DIR = "/MyRecords";
 
 	private KeyStore keyStore;
 
@@ -19,22 +21,18 @@ public class Wallet {
 	private HTTPSClient client;
 	private static String host = "127.0.0.1";
 
-	private static final int PORT = 9999;
-
-	
-	private static final String RECORDS_DIR = "/MyRecords";
-
 	static boolean running;
 
 	Wallet() {
 		System.out.println("-- Wallet Initialising --");
 		records = loadWallet();
 		System.out.println("-- Wallet Initialised --");
+		refresh();
 	}
 
 	private boolean refresh() {
 		
-		client = new HTTPSClient(this, null, keyStore, host, PORT);
+		client = new HTTPSClient(this, null, keyStore, host, Constants.PORT);
 		if (client.run()) {
 			return true;
 		} else {
@@ -221,6 +219,33 @@ public class Wallet {
 		}
 
 	}
+	
+	private void viewRecords() {
+		if (records.size() == 0) {
+			System.out.println("No records to show");
+		}
+		for (int i = 0; i < records.size(); i++) {
+			System.out.println(records.get(i).toString());
+		}
+
+	}
+
+	private void setHost(String newHost) {
+		// TODO check if ip string
+
+		String oldHost = host;
+		host = newHost;
+		if (!refresh()) {
+			System.out.println("Could not connect to '" + newHost + "'. Reverting to '" + oldHost + "'");
+			host = oldHost;
+		}
+	}
+	
+	public void shutdown() {
+		System.out.println("-- Wallet Saving --");
+		saveWallet();
+		System.out.println("-- Wallet Shutdown --");
+	}
 
 	private void parseCommand(String command) {
 		String[] commands = command.split(" ");
@@ -258,27 +283,8 @@ public class Wallet {
 			running = false;
 		} else if (commands[0].equals("help")) {
 			printHelp();
-		}
-	}
-
-	private void viewRecords() {
-		if (records.size() == 0) {
-			System.out.println("No records to show");
-		}
-		for (int i = 0; i < records.size(); i++) {
-			System.out.println(records.get(i).toString());
-		}
-
-	}
-
-	private void setHost(String newHost) {
-		// TODO check if ip string
-
-		String oldHost = host;
-		host = newHost;
-		if (!refresh()) {
-			System.out.println("Could not connect to '" + newHost + "'. Reverting to '" + oldHost + "'");
-			host = oldHost;
+		} else {
+			System.err.println("'" +command + "' is not a valid command");
 		}
 	}
 
@@ -313,7 +319,7 @@ public class Wallet {
 			wallet.parseCommand(command);
 		}
 		scanner.close();
-		wallet.saveWallet();
+		wallet.shutdown();
 		System.exit(0);
 	}
 

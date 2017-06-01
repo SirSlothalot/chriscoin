@@ -9,8 +9,8 @@ import java.util.Random;
 @SuppressWarnings("serial")
 public class BlockChain implements Serializable {
 
-	HashMap<byte[], Block> blockChain;
-	byte[] topBlockHash;
+	private HashMap<byte[], Block> blockChain;
+	private byte[] topBlockHash;
 
 	public BlockChain() {
 		blockChain = new HashMap<byte[], Block>();
@@ -40,6 +40,7 @@ public class BlockChain implements Serializable {
 	}
 
 	public byte[] findTransaction(byte[] transHash) {
+		
 		Block curBlock = blockChain.get(topBlockHash);
 
 		while (!curBlock.hasTransaction(transHash)) {
@@ -57,6 +58,35 @@ public class BlockChain implements Serializable {
 			return null;
 		}
 
+	}
+	
+	public int getBlockCount() {
+		return blockChain.size();
+	}
+	
+	public Block getBlock(byte[] blockHash) {
+		return blockChain.get(blockHash);
+	}
+	
+	public BlockHeaderChain genBlockHeaderChain() {
+		BlockHeaderChain headChain = new BlockHeaderChain();
+		byte[] currentHash = topBlockHash;
+		while (blockChain.containsKey(currentHash)) {
+			headChain.put(blockChain.get(currentHash).getBlockHeader());
+			currentHash = blockChain.get(currentHash).getBlockHeader().getPrevBlockHeadHash();
+		}
+		return headChain;
+	}
+	
+	@Override
+	public String toString() {
+		String temp = "-- BlockChain --\n";
+		byte[] currentHash = topBlockHash;
+		while (blockChain.containsKey(currentHash)) {
+			temp += blockChain.get(currentHash).toString() + "\n";
+			currentHash = blockChain.get(currentHash).getBlockHeader().getPrevBlockHeadHash();
+		}
+		return temp;
 	}
 
 }

@@ -1,27 +1,53 @@
 package main.miner;
 
+import main.generic.Block;
+import main.generic.BlockChain;
+import main.generic.BlockHeaderChain;
+import main.generic.Constants;
 import main.generic.Hasher;
 import main.generic.TestMessage;
 import main.generic.Transaction;
-import main.wallet.Wallet;
-import main.generic.MerkleTree;
-import java.io.ByteArrayOutputStream;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Miner {
 
+	private static final String BLOCKCHAIN_DIR = "/BlockChain";
+
 	private static boolean running;
+
+	BlockChain blockChain;
+	
+	Block currentBlock;
+
+	private boolean hasUpdates;
+
+	Miner() {
+		System.out.println("-- Miner Initialising --");
+		blockChain = loadBlockChain();
+		currentBlock = loadCurrentBlock();
+		System.out.println("-- Miner Initialised --");
+	}
+	
 	// private KeyStore keyStore;
 	// private UpdatesRepository updates;
-
 	// private HTTPSServer server;
-	// private static final int PORT = 9999;
 
 	/*
 	 * Miner() { keyStore = Keys.initKeyStore(keyStore, "pass1");
@@ -35,11 +61,131 @@ public class Miner {
 	 * PORT); server.run(); }
 	 */
 
+	private BlockChain loadBlockChain() {
+		intialiseDirs();
+		ObjectInput input = null;
+		try {
+			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + BLOCKCHAIN_DIR + "blockchain.ser");
+			InputStream buffer = new BufferedInputStream(file);
+			input = new ObjectInputStream(buffer);
+			BlockChain temp = (BlockChain) input.readObject();
+			input.close();
+			System.out.println("BlockChain loaded..." + "\nBlock count: " + temp.getBlockCount());
+			return temp;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			try {
+				input.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			return null;
+		} catch (IOException e) {
+			return new BlockChain();
+		}
+	}
+
+	private void saveBlockChain() {
+		try {
+			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + BLOCKCHAIN_DIR + "blockchain.ser");
+			OutputStream buffer = new BufferedOutputStream(file);
+			ObjectOutput output = new ObjectOutputStream(buffer);
+			output.writeObject(blockChain);
+			output.close();
+			System.out.println("BlockChain saved..." + "\nBlock count: " + blockChain.getBlockCount());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private Block loadCurrentBlock() {
+		intialiseDirs();
+		ObjectInput input = null;
+		try {
+			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + BLOCKCHAIN_DIR + "currentblock.ser");
+			InputStream buffer = new BufferedInputStream(file);
+			input = new ObjectInputStream(buffer);
+			Block temp = (Block) input.readObject();
+			input.close();
+			System.out.println("Current block loaded" + "\nTransaction count: " + temp.getTransactionCount());
+			return temp;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			try {
+				input.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			return null;
+		} catch (IOException e) {
+			return null;
+		}
+	}
+
+	private void saveCurrentBlock() {
+		try {
+			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + BLOCKCHAIN_DIR + "currentblock.ser");
+			OutputStream buffer = new BufferedOutputStream(file);
+			ObjectOutput output = new ObjectOutputStream(buffer);
+			output.writeObject(currentBlock);
+			output.close();
+			System.out.println("Current block saved..." + "\nTransaction count: " + currentBlock.getTransactionCount());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void intialiseDirs() {
+		File dir = new File(Constants.DESKTOP_DIR + BLOCKCHAIN_DIR);
+		dir.mkdirs();
+	}
+
+	public synchronized void recieveTransactions(ArrayList<Transaction> transaction) {
+		// TODO
+	}
+	
+	private void sendBlockHeaders() {
+		BlockHeaderChain headChain = blockChain.genBlockHeaderChain();
+		
+		// TODO Send shit
+	}
+	
+	private Block findTransactionBlock(Transaction trans) {
+		try {
+			return blockChain.getBlock(blockChain.findTransaction(Hasher.hash(trans)));
+		} catch (NoSuchAlgorithmException | IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	private void appendTransaction(Transaction trans) {
+		if (!currentBlock.isFull()) {
+			currentBlock.addTransaction(trans);
+		} else {
+			addBlockToChain(currentBlock);
+			createNewBlock(trans);
+		}
+	}
+
+	private void createNewBlock(Transaction trans) {
+		try {
+			currentBlock = new Block(trans);
+		} catch (NoSuchAlgorithmException | IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void addBlockToChain(Block block) {
+		blockChain.put(block);
+		hasUpdates = true;
+	}
+
 	/*
-	 * Finds nonce that when hashed with msg, fufils the test given the
+	 * Finds nonce that when hashed with msg, fulfills the test given the
 	 * difficulty. Returns the int of the nonce that fufils the test.
 	 */
-	public static int proof(TestMessage msg, int difficulty) throws IOException {
+	public static int proof(TestMessage msg, int difficulty) throws IOException, NoSuchAlgorithmException {
 		System.out.print("Finding proof of work...\n");
 		// Random integer
 		Random rn = new Random();
@@ -47,14 +193,14 @@ public class Miner {
 		// Infinite Loop
 		while (true) {
 			// Converting data and int to byte[]
-			byte[] data1 = serialize(msg);
+			byte[] data1 = Hasher.serialize(msg);
 			byte[] data2 = ByteBuffer.allocate(4).putInt(nonce).array();
 			// Combining data into one byte[]
 			byte[] combined = new byte[data1.length + data2.length];
 			System.arraycopy(data1, 0, combined, 0, data1.length);
 			System.arraycopy(data2, 0, combined, data1.length, data2.length);
 			// Hashing (SHA256)
-			byte[] hash = hash(combined);
+			byte[] hash = Hasher.hash(combined);
 			// Hash Test (More 0's = more difficulty, 3 ~ 2 minutes)
 			Boolean test = true;
 			for (int i = 0; i < difficulty; i++) {
@@ -81,34 +227,6 @@ public class Miner {
 	}
 
 	/*
-	 * Takes a single byte[] variable and performs SHA-256 hash and returns the
-	 * hash in a byte[] format.
-	 */
-	public static byte[] hash(byte[] obj) {
-		MessageDigest digest;
-		try {
-			digest = MessageDigest.getInstance("SHA-256");
-			byte[] hash = digest.digest(obj);
-			return hash;
-		} catch (NoSuchAlgorithmException e) {
-			return null;
-		}
-	}
-
-	/*
-	 * Takes a serializable object (...implements serializable) and converts it
-	 * into a byte[0] format which is required for the hash function.
-	 */
-	public static byte[] serialize(Object obj) throws IOException {
-		try (ByteArrayOutputStream b = new ByteArrayOutputStream()) {
-			try (ObjectOutputStream o = new ObjectOutputStream(b)) {
-				o.writeObject(obj);
-			}
-			return b.toByteArray();
-		}
-	}
-
-	/*
 	 * public ArrayList<Message> getUpdatesForClient(PublicKey pub) { return
 	 * updates.getUpdate(pub); }
 	 * 
@@ -116,11 +234,55 @@ public class Miner {
 	 * public void addUpdateForClient(PublicKey client, Message message) {
 	 * updates.addUpdate(client, message); }
 	 */
-	
-	private void parseCommand(String command) {
-		
+
+	private void printBlockChain() {
+		System.out.println(blockChain.toString());
 	}
 	
+	public void shutdown() {
+		System.out.println("-- Miner Saving --");
+		saveBlockChain();
+		saveCurrentBlock();
+		System.out.println("-- Miner Shutdown --");
+	}
+
+	private void parseCommand(String command) {
+		String[] commands = command.split(" ");
+
+		if (commands.length < 1) {
+			return;
+		}
+		commands[0].toLowerCase();
+
+		if (commands[0].equals("blockchain")) {
+			if (commands.length > 1) {
+				if (commands[1].equals("view")) {
+					printBlockChain();
+				}
+			} else {
+				System.err.println("blockchain requires and argument");
+			}
+
+		} else if (commands[0].equals("help")) {
+			printHelp();
+		} else if (commands[0].equals("exit")) {
+			running = false;
+		} else {
+			System.err.println("'" + command + "' is not a valid command");
+		}
+
+	}
+
+	private static void printHelp() {
+		System.out.println("-- List of commands and purposes --");
+		System.out.println();
+		System.out.println("blockchain view");
+		System.out.println("- Prints out the BlockChain");
+		System.out.println("exit");
+		System.out.println("- exits the program");
+
+	}
+
 	public static void main(String[] args) {
 
 		Miner miner = new Miner();
@@ -131,6 +293,7 @@ public class Miner {
 			miner.parseCommand(command);
 		}
 		scanner.close();
+		miner.shutdown();
 		System.exit(0);
 	}
 }

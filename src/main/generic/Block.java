@@ -6,7 +6,6 @@ import java.util.HashMap;
 
 public class Block {
 
-	private int blockSize;
 	private BlockHeader blockHeader;
 	private int transactionCount;
 	private HashMap<byte[], Transaction> transactions;
@@ -38,9 +37,9 @@ public class Block {
 			return false;
 		}
 	}
-
-	public int getBlockSize() {
-		return blockSize;
+	
+	public boolean isFull() {
+		return (transactionCount >= 1000);
 	}
 
 	public BlockHeader getBlockHeader() {
@@ -57,6 +56,13 @@ public class Block {
 
 	public boolean hasTransaction(byte[] transHash) {
 		return transactions.containsKey(transHash);
+	}
+	
+	@Override
+	public String toString() {
+		String temp = blockHeader.toString() + "\n";
+		temp += "Transaction Count: " + transactionCount;
+		return temp;
 	}
 
 }

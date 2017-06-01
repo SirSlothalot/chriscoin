@@ -64,11 +64,11 @@ public class HTTPSServer {
 
             // Initialize SSLContext
             SSLContext sslContext = SSLContext.getInstance("TLSv1");
-//            
-//            SecureRandom random = new SecureRandom();
-//            byte bytes[] = new byte[20];
-//            random.nextBytes(bytes);            
-//            sslContext.init(km,  tm, random);
+            
+//          SecureRandom random = new SecureRandom();
+//          byte bytes[] = new byte[20];
+//          random.nextBytes(bytes);            
+//          sslContext.init(km,  tm, random);
             
             sslContext.init(km, tm, null);
             

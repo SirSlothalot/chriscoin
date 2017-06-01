@@ -1,6 +1,8 @@
 package main.generic;
 
 public class Constants {
+	public static final int PORT = 9999;
+	
 	public static final String DESKTOP_DIR 			= 	System.getProperty("user.home") + "/Desktop/ChrisCoin";
 
 	public static final String TRUSTED_CERTS_DIR	= 	"/wallet/trusted-certificates/";
@@ -10,8 +12,6 @@ public class Constants {
 	public static final String PRIVATE_KEY_NAME		=	"my-private-key";
 	public static final String CERT_NAME			= 	"my-certificate";
 	public static final String WALLLET_CERT_GEN		= 	"/wallet/gen-certs-wallet.sh";
-	
-	
 	
 	public static final String MINER_CERT_GEN		= 	"/miner/gen-certs-miner.sh";
 	

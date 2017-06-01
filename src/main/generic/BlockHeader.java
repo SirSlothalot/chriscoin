@@ -1,6 +1,8 @@
 package main.generic;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 @SuppressWarnings("serial")
@@ -37,5 +39,20 @@ public class BlockHeader implements Serializable {
 
 	public int getDifficultyTime() {
 		return difficultyTime;
+	}
+	
+	@Override
+	public String toString() {
+		try {
+			String temp = "BlockHeader Hash: " + Hasher.bytesToHex(Hasher.hash(this)) + "\n";
+			temp += "Previous Block: " + Hasher.bytesToHex(prevBlockHeadHash) + "\n";
+			temp += "Merkle Root: " + Hasher.bytesToHex(merkleRoot) + "\n";
+			temp += "Time Stamp: " + timeStamp.toString() + "\n";
+			temp += "Nonce: " + nonce;
+			return temp;
+		} catch (NoSuchAlgorithmException | IOException e) {
+			e.printStackTrace();
+			return "FAILED TO HASH";
+		}
 	}
 }
