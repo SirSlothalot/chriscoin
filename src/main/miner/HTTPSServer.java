@@ -1,16 +1,13 @@
 package main.miner;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.security.KeyStore;
-import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 
@@ -93,18 +90,44 @@ public class HTTPSServer {
             // Create server socket
             SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(this.port);
 
-            System.out.println("SSL server started");
-            while(!isServerDone){
-                SSLSocket sslSocket = (SSLSocket) sslServerSocket.accept();
-
-                // Start the server thread
-                new ServerThread(sslSocket, miner).start();
-            }
+            ServerController serverController = new ServerController(sslServerSocket, miner);
+            serverController.start();
+            
         } catch (Exception ex){
             ex.printStackTrace();
         }
     }
 
+    
+    static class ServerController extends Thread {
+    	private Boolean isServerDone;
+    	SSLServerSocket sslServerSocket;
+    	Miner miner;
+    	ServerController(SSLServerSocket sslServerSocket, Miner miner) throws IOException {
+    		isServerDone = false;
+    		this.sslServerSocket = sslServerSocket;
+    		this.miner = miner;
+    	}
+    	
+    	@Override
+    	public void run() {
+            System.out.println("SSL server started");
+
+    		while(!isServerDone){
+                SSLSocket sslSocket;
+				try {
+					sslSocket = (SSLSocket) sslServerSocket.accept();
+					
+					// Start the server thread
+					new ServerThread(sslSocket, miner).start();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+            }
+    	}
+    }
+    
+    
     // Thread handling the socket from client
     static class ServerThread extends Thread {
         private SSLSocket sslSocket;

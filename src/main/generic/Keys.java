@@ -81,7 +81,7 @@ public class Keys {
 				certPem.write(path + Constants.CERT_FILE);
 
 				// save keyStore with new keys
-				keyStore.store(new FileOutputStream(Constants.KEY_STORE_NAME), keyStorePassword.toCharArray());
+				keyStore.store(new FileOutputStream(path + Constants.KEY_STORE_NAME), keyStorePassword.toCharArray());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

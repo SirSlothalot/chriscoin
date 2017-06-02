@@ -12,7 +12,7 @@ public class Constants {
 	public static final String RECORDS_DIR 			= 	"/MyRecords";
 
 	
-	public static final String TRUSTED_CERTS_DIR	= 	"/trusted-certificates/";
+	public static final String TRUSTED_CERTS_DIR	= 	"/trusted-certificates";
 	public static final String KEY_STORE_NAME		= 	"/key-store.jks";
 	public static final String PRIV_KEY_FILE		= 	"/private-key.pem";
 	public static final String CERT_FILE			= 	"/certificate.pem";
