@@ -31,9 +31,7 @@ public class Keys {
 				return keyStore;
 			} else {
 				keyStore.load(null, null);
-				System.out.println("hey");
 				keyStore.store(new FileOutputStream(path + Constants.KEY_STORE_NAME), keyStorePassword.toCharArray());
-				System.out.println("hey 2");
 				return keyStore;
 			}
 		} catch (Exception e) {

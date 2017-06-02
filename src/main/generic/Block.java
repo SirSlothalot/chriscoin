@@ -1,10 +1,11 @@
 package main.generic;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class Block {
+@SuppressWarnings("serial")
+public class Block implements Serializable {
 
 	private BlockHeader blockHeader;
 	private int transactionCount;

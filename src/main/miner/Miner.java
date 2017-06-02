@@ -25,13 +25,11 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Random;
 import java.util.Scanner;
 
-import javax.security.auth.x500.X500Principal;
 import java.security.cert.Certificate;
 
 public class Miner {
@@ -52,15 +50,15 @@ public class Miner {
 
 	Miner() {
 		System.out.println("-- Miner Initialising --");
-		
+
 		keyStore = Keys.initKeyStore(keyStore, "pass1", Constants.DESKTOP_DIR + Constants.MINER_DIR);
 		Keys.initKeys(keyStore, "pass1", "pass1", Constants.DESKTOP_DIR + Constants.MINER_DIR);
 		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR);
-		
+
+		updatesRepo = loadUpdatesRepo();
 		blockChain = loadBlockChain();
 		currentBlock = loadCurrentBlock();
-		updatesRepo = loadUpdatesRepo();
-		
+
 		server = new HTTPSServer(this, keyStore, PORT);
 		server.run();
 		System.out.println("-- Miner Initialised --");
@@ -104,7 +102,7 @@ public class Miner {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private BlockChain createBlockChain() {
 		BlockChain blockChain = new BlockChain();
 		Transaction genesisTrans = new Transaction();
@@ -113,7 +111,7 @@ public class Miner {
 			peers = keyStore.aliases();
 			while (peers.hasMoreElements()) {
 				Certificate cert = keyStore.getCertificate(peers.nextElement());
-				if(cert != null) {
+				if (cert != null) {
 					PublicKey pub = (PublicKey) cert.getPublicKey();
 					genesisTrans.addOut(Constants.GENESIS_AMOUNT, pub);
 				}
@@ -128,8 +126,11 @@ public class Miner {
 		} catch (NoSuchAlgorithmException | IOException e) {
 			e.printStackTrace();
 		}
-		blockChain.put(genesisBlock);	
-		
+
+		blockChain.put(genesisBlock);
+
+		addToRepositry(genesisBlock);
+
 		return blockChain;
 	}
 
@@ -143,7 +144,7 @@ public class Miner {
 			input = new ObjectInputStream(buffer);
 			Block temp = (Block) input.readObject();
 			input.close();
-			System.out.println("Current block loaded" + "\nTransaction count: " + temp.getTransactionCount());
+			System.out.println("Current block loaded");
 			return temp;
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -267,13 +268,17 @@ public class Miner {
 	}
 
 	private void addToRepositry(Block block) {
-		Transaction[] transArr = (Transaction[]) block.getTransactions().values().toArray();
+		Object[] transArr = block.getTransactions().values().toArray();
 		for (int k = 0; k < transArr.length; k++) {
-			for (int i = 0; i < transArr[k].getInputCount(); i++) {
-				updatesRepo.addUpdate(blockChain.getBlock(blockChain.findTransaction(transArr[k].getParentHash(i))).getTransaction(transArr[k].getParentHash(i)).getRecieverKey(transArr[k].getParentOutputIndex(i)), transArr[k]);
+			Transaction trans = (Transaction) transArr[k];
+			for (int i = 0; i < trans.getInputCount(); i++) {
+				updatesRepo.addUpdate(
+						blockChain.getBlock(blockChain.findTransaction(trans.getParentHash(i)))
+								.getTransaction(trans.getParentHash(i)).getRecieverKey(trans.getParentOutputIndex(i)),
+						trans);
 			}
-			for (int o = 0; o < transArr[k].getOutputCount(); o++) {
-				updatesRepo.addUpdate(transArr[k].getRecieverKey(o), transArr[k]);
+			for (int o = 0; o < trans.getOutputCount(); o++) {
+				updatesRepo.addUpdate(trans.getRecieverKey(o), trans);
 			}
 		}
 	}
