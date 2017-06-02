@@ -11,6 +11,9 @@ import java.security.Security;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
+
+import javax.security.auth.x500.X500Principal;
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class Keys {
@@ -99,7 +102,13 @@ public class Keys {
 				cert = pemToCert(files[i].getPath());
 				if (cert != null) {
 					try {
-						keyStore.setCertificateEntry("peer-certificate-" + i, cert);
+						X500Principal p = cert.getSubjectX500Principal();
+						String name = p.getName();
+						System.out.println(name);
+						String[] distinguishedNames = name.split(",");
+						name = distinguishedNames[0].substring(3);
+						System.out.println(name);
+						keyStore.setCertificateEntry(name, cert);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

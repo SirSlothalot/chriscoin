@@ -156,7 +156,7 @@ public class Miner {
 			}
 			return null;
 		} catch (IOException e) {
-			return null;
+			return new UpdatesRepository();
 		}
 	}
 	
