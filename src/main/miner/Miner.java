@@ -53,7 +53,7 @@ public class Miner {
 		
 		keyStore = Keys.initKeyStore(keyStore, "pass1", Constants.DESKTOP_DIR + Constants.MINER_DIR);
 		Keys.initKeys(keyStore, "pass1", "pass1", Constants.DESKTOP_DIR + Constants.MINER_DIR);
-		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR);
+		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR + Constants.MINER_DIR);
 		
 		server = new HTTPSServer(this, keyStore, PORT);
 		server.run();

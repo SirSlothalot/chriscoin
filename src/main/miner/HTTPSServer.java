@@ -8,7 +8,9 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.security.KeyStore;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
+import javax.security.cert.X509Certificate;
 import java.util.ArrayList;
 
 import javax.net.ssl.KeyManager;
@@ -155,6 +157,7 @@ public class HTTPSServer {
                 System.out.println("\tProtocol : "+sslSession.getProtocol());
                 System.out.println("\tCipher suite : "+sslSession.getCipherSuite());
 
+
                 //Initialize streams
                 ObjectOutputStream outputStream = new ObjectOutputStream(sslSocket.getOutputStream());
                 ObjectInputStream inputStream = new ObjectInputStream(sslSocket.getInputStream());
@@ -168,8 +171,15 @@ public class HTTPSServer {
            
                     if(line.trim().equals("Request update")){
                         //Receive update request
-                    	Certificate[] peerCertificate = sslSession.getPeerCertificates();
-                    	ArrayList<Transaction> outgoingMessages = miner.getUpdatesForClient(peerCertificate[0].getPublicKey());
+                    	
+                    	
+                    	PublicKey publicKey;
+						while((publicKey = (PublicKey) inputStream.readObject()) != null ){
+                        	break;
+                		}
+                    	
+                    	
+                    	ArrayList<Transaction> outgoingMessages = miner.getUpdatesForClient(publicKey);
                     	if(outgoingMessages == null) {
                     		printWriter.println("No new messages for client");
                             printWriter.flush();

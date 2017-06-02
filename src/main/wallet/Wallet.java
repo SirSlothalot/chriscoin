@@ -31,20 +31,25 @@ public class Wallet {
 		
 		keyStore = Keys.initKeyStore(keyStore, "pass1", Constants.DESKTOP_DIR + Constants.WALLET_DIR);
 		Keys.initKeys(keyStore, "pass1", "pass1", Constants.DESKTOP_DIR + Constants.WALLET_DIR);
-		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR);
+		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR + Constants.WALLET_DIR);
 		
 		client = new HTTPSClient(this, keyStore, HOST, PORT);
 		refresh();
 	}
 
 	private boolean refresh() {
-		if (client.run(null)) {
-			return true;
-		} else {
-			System.err.println("Can't connect to server");
+		try {
+			PublicKey pub = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
+			if (client.run(pub)) {
+				return true;
+			} else {
+				System.err.println("Can't connect to server");
+				return false;
+			}
+		} catch (KeyStoreException e) {
+			e.printStackTrace();
 			return false;
 		}
-		
 	}
 
 	// PrivateKey privKey = (PrivateKey) keyStore.getKey("my-private-key",

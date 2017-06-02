@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.security.KeyStore;
+import java.security.PublicKey;
 import java.util.ArrayList;
 
 import javax.net.ssl.KeyManager;
@@ -60,6 +61,30 @@ public class HTTPSClient {
 		return null;
 	}
 
+	
+	// Start to run the server
+		public boolean run(PublicKey publicKey) {
+			SSLContext sslContext = this.createSSLContext();
+
+			try {
+				// Create socket factory
+				SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+				// Create socket
+				SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(this.host, this.port);
+
+				System.out.println("SSL client started:");
+				ClientThread thread = new ClientThread(sslSocket, wallet, publicKey);
+				thread.start();
+				thread.join();
+				return true;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+	
+	
 	// Start to run the server
 	public boolean run(Object message) {
 		SSLContext sslContext = this.createSSLContext();
@@ -87,11 +112,20 @@ public class HTTPSClient {
 		private SSLSocket sslSocket;
 		private Wallet wallet;
 		private Object outgoingMessage;
+		private PublicKey publicKey;
 
+		ClientThread(SSLSocket sslSocket, Wallet wallet, PublicKey publicKey) {
+			this.sslSocket = sslSocket;
+			this.wallet = wallet;
+			this.outgoingMessage = null;
+			this.publicKey = publicKey;
+		}
+		
 		ClientThread(SSLSocket sslSocket, Wallet wallet, Object message) {
 			this.sslSocket = sslSocket;
 			this.wallet = wallet;
 			this.outgoingMessage = message;
+			this.publicKey = null;
 		}
 
 		@SuppressWarnings("unchecked")
@@ -119,6 +153,9 @@ public class HTTPSClient {
 					// Request update
 					printWriter.println("Request update");
 					printWriter.flush();
+					
+					outputStream.writeObject(publicKey);
+					outputStream.flush();
 
 					// Receive update
 					String line = null;

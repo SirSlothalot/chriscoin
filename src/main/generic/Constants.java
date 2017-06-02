@@ -16,8 +16,8 @@ public class Constants {
 	public static final String KEY_STORE_NAME		= 	"/key-store.jks";
 	public static final String PRIV_KEY_FILE		= 	"/private-key.pem";
 	public static final String CERT_FILE			= 	"/certificate.pem";
-	public static final String PRIVATE_KEY_NAME		=	"/my-private-key";
-	public static final String CERT_NAME			= 	"/my-certificate";
+	public static final String PRIVATE_KEY_NAME		=	"my-private-key";
+	public static final String CERT_NAME			= 	"my-certificate";
 	
 	
 	public static final String WALLLET_CERT_GEN		= 	"/wallet/gen-certs-wallet.sh";
