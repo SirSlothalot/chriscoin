@@ -19,17 +19,17 @@ public class Keys {
 	 * Checks if keyStore exists - Yes - load existing keyStore - No - create
 	 * new keyStore
 	 */
-	static KeyStore initKeyStore(KeyStore keyStore, String keyStorePassword) {
+	public static KeyStore initKeyStore(KeyStore keyStore, String keyStorePassword, String path) {
 		try {
 			keyStore = KeyStore.getInstance("PKCS12");
-			InputStream file = Keys.class.getResourceAsStream(Constants.KEY_STORE_NAME);
+			InputStream file = Keys.class.getResourceAsStream(path + Constants.KEY_STORE_NAME);
 			if (file != null) {
-				keyStore.load(Keys.class.getResourceAsStream(Constants.KEY_STORE_NAME), keyStorePassword.toCharArray());
+				keyStore.load(Keys.class.getResourceAsStream(path + Constants.KEY_STORE_NAME), keyStorePassword.toCharArray());
 				return keyStore;
 			} else {
 				keyStore.load(null, null);
 				System.out.println("hey");
-				keyStore.store(new FileOutputStream(Constants.KEY_STORE_NAME), keyStorePassword.toCharArray());
+				keyStore.store(new FileOutputStream(path + Constants.KEY_STORE_NAME), keyStorePassword.toCharArray());
 				System.out.println("hey 2");
 				return keyStore;
 			}
@@ -43,7 +43,7 @@ public class Keys {
 
 	// https://www.txedo.com/blog/java-generate-rsa-keys-write-pem-file/
 	// https://tls.mbed.org/kb/cryptography/asn1-key-structures-in-der-and-pem
-	static void initKeys(KeyStore keyStore, String keyStorePassword, String privKeyPassword) {
+	public static void initKeys(KeyStore keyStore, String keyStorePassword, String privKeyPassword, String path) {
 
 		try {
 			if (!keyStore.containsAlias(Constants.PRIVATE_KEY_NAME) || !keyStore.containsAlias(Constants.CERT_NAME)) {
@@ -63,8 +63,8 @@ public class Keys {
 				// Process proc = rt.exec(cmd);
 				// proc.waitFor();
 
-				PrivateKey privKey = pemToPrivateKey(Constants.PRIV_KEY_FILE);
-				X509Certificate cert = pemToCert(Constants.CERT_FILE);
+				PrivateKey privKey = pemToPrivateKey(path + Constants.PRIV_KEY_FILE);
+				X509Certificate cert = pemToCert(path + Constants.CERT_FILE);
 				X509Certificate[] chain = new X509Certificate[1];
 				chain[0] = cert;
 
@@ -74,11 +74,11 @@ public class Keys {
 
 				// save private key as PEM file
 				PemFile privPem = new PemFile(privKey, "RSA Private Key");
-				privPem.write(Constants.PRIV_KEY_FILE);
+				privPem.write(path + Constants.PRIV_KEY_FILE);
 
 				// save cert as PEM file
 				PemFile certPem = new PemFile(cert, "CERTIFICATE");
-				certPem.write(Constants.CERT_FILE);
+				certPem.write(path + Constants.CERT_FILE);
 
 				// save keyStore with new keys
 				keyStore.store(new FileOutputStream(Constants.KEY_STORE_NAME), keyStorePassword.toCharArray());
@@ -88,8 +88,8 @@ public class Keys {
 		}
 	}
 
-	static void loadTrustedCertificates(KeyStore keyStore) {
-		File dir = new File(Constants.TRUSTED_CERTS_DIR);
+	public static void loadTrustedCertificates(KeyStore keyStore, String path) {
+		File dir = new File(path + Constants.TRUSTED_CERTS_DIR);
 		File[] files = dir.listFiles();
 
 		X509Certificate cert;

@@ -24,6 +24,8 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
+import main.generic.Transaction;
+
 public class HTTPSServer {
     private int port = 9999;
     private boolean isServerDone = false;
@@ -136,13 +138,15 @@ public class HTTPSServer {
                 PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(outputStream));
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                 
-                //Receive update request
                 String line = null;
+                Transaction message = null;
                 while((line = bufferedReader.readLine()) != null){
             		System.out.println("Inut : "+line);
+           
                     if(line.trim().equals("Request update")){
+                        //Receive update request
                     	Certificate[] peerCertificate = sslSession.getPeerCertificates();
-                    	ArrayList<Message> outgoingMessages = miner.getUpdatesForClient(peerCertificate[0].getPublicKey());
+                    	ArrayList<Transaction> outgoingMessages = miner.getUpdatesForClient(peerCertificate[0].getPublicKey());
                     	if(outgoingMessages == null) {
                     		printWriter.println("No new messages for client");
                             printWriter.flush();
@@ -165,26 +169,19 @@ public class HTTPSServer {
                     	printWriter.println("No new messages for client");
                         printWriter.flush();
                     	break;
-                    }
-            	}
-                
-                //Receive new messages
-                Message message = null;
-                while((line = bufferedReader.readLine()) != null) {
-            		System.out.println("Inut : "+line);
-                	if(line.trim().equals("Imbound message")) {
-                		while((message = (Message) inputStream.readObject()) != null ){
-                    		//process message
-                			System.out.println(message.getAmount());
+                    } else if(line.trim().equals("Imbound message")) {
+                    	//receive message
+                    	while((message = (Transaction) inputStream.readObject()) != null ){
+                			miner.receiveTransaction(message);
                     		printWriter.println("Miner received message");
                             printWriter.flush();
                         	message = null;
                         	break;
                 		}
-                	} else if(line.trim().equals("No new messages for miner")) {
+                    } else if(line.trim().equals("No new messages for miner")) {
                 		break;
                 	}
-                }                  
+            	}   
                 sslSocket.close();
             } catch (Exception e) {
                 e.printStackTrace();

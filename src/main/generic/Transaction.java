@@ -32,6 +32,10 @@ public class Transaction implements Serializable {
 		outputCounter++;
 	}
 	
+	public int getInputCount() {
+		return inputCounter;
+	}
+	
 	public byte[] getParentHash(int inIndex) {
 		return ins.get(inIndex).getParentTransactionHash();
 	}

@@ -19,17 +19,17 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
+import main.generic.Transaction;
+
 public class HTTPSClient {
 	private String host = "127.0.0.1";
 	private int port = 9999;
 
 	private KeyStore keyStore;
 	private Wallet wallet;
-	private Object message;
 
-	HTTPSClient(Wallet wallet, Object message, KeyStore keyStore, String host, int port) {
+	HTTPSClient(Wallet wallet, KeyStore keyStore, String host, int port) {
 		this.wallet = wallet;
-		this.message = message;
 		this.host = host;
 		this.port = port;
 		this.keyStore = keyStore;
@@ -61,7 +61,7 @@ public class HTTPSClient {
 	}
 
 	// Start to run the server
-	public boolean run() {
+	public boolean run(Object message) {
 		SSLContext sslContext = this.createSSLContext();
 
 		try {
@@ -115,40 +115,37 @@ public class HTTPSClient {
 				PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(outputStream));
 				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
-				// Request update
-				printWriter.println("Request update");
-				printWriter.flush();
+				if(outgoingMessage == null) {
+					// Request update
+					printWriter.println("Request update");
+					printWriter.flush();
 
-				// Receive update
-				String line = null;
-				ArrayList<Object> incomingMessages = null;
+					// Receive update
+					String line = null;
+					ArrayList<Transaction> incomingMessages = null;
 
-				while ((line = bufferedReader.readLine()) != null) {
-					System.out.println("Inut : " + line);
-					if (line.trim().equals("Imbound message")) {
-						while ((incomingMessages = (ArrayList<Object>) inputStream.readObject()) != null) {
-							// update records
-							// update balance
-							// wallet.receiveMessage(incomingMessages);
-							incomingMessages = null;
-							printWriter.println("Client received message");
-							printWriter.flush();
+					while ((line = bufferedReader.readLine()) != null) {
+						System.out.println("Inut : " + line);
+						if (line.trim().equals("Imbound message")) {
+							while ((incomingMessages = (ArrayList<Transaction>) inputStream.readObject()) != null) {
+								wallet.receiveMessages(incomingMessages);
+								incomingMessages = null;
+								printWriter.println("Client received message");
+								printWriter.flush();
+								break;
+							}
+						} else if (line.trim().equals("No new messages for client")) {
 							break;
 						}
-					} else if (line.trim().equals("No new messages for client")) {
-						break;
 					}
-				}
-
-				// If there is a message to send, send it
-				if (outgoingMessage != null) {
+				} else {
 					printWriter.println("Imbound message");
 					printWriter.flush();
 
 					outputStream.writeObject(outgoingMessage);
 					outputStream.flush();
 
-					line = null;
+					String line = null;
 					while ((line = bufferedReader.readLine()) != null) {
 						System.out.println("Inut : " + line);
 
@@ -156,9 +153,6 @@ public class HTTPSClient {
 							break;
 						}
 					}
-				} else {
-					printWriter.println("No new messages for miner");
-					printWriter.flush();
 				}
 
 				sslSocket.close();

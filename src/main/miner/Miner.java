@@ -5,6 +5,7 @@ import main.generic.BlockChain;
 import main.generic.BlockHeaderChain;
 import main.generic.Constants;
 import main.generic.Hasher;
+import main.generic.Keys;
 import main.generic.TestMessage;
 import main.generic.Transaction;
 
@@ -21,51 +22,51 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Miner {
 
-	private static final String BLOCKCHAIN_DIR = "/BlockChain";
-
 	private static boolean running;
 
 	BlockChain blockChain;
-	
 	Block currentBlock;
 
 	private boolean hasUpdates;
+	
+	private static int PORT = 9999;
+	private HTTPSServer server;
+	
+	private UpdatesRepository updatesRepo;
+	
+	private KeyStore keyStore;
 
 	Miner() {
 		System.out.println("-- Miner Initialising --");
 		blockChain = loadBlockChain();
 		currentBlock = loadCurrentBlock();
+		updatesRepo = loadUpdatesRepo();
+		
+		keyStore = Keys.initKeyStore(keyStore, "pass1", Constants.DESKTOP_DIR + Constants.MINER_DIR);
+		Keys.initKeys(keyStore, "pass1", "pass1", Constants.DESKTOP_DIR + Constants.MINER_DIR);
+		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR);
+		
+		server = new HTTPSServer(this, keyStore, PORT);
+		server.run();
 		System.out.println("-- Miner Initialised --");
 	}
 	
-	// private KeyStore keyStore;
-	// private UpdatesRepository updates;
-	// private HTTPSServer server;
-
-	/*
-	 * Miner() { keyStore = Keys.initKeyStore(keyStore, "pass1");
-	 * Keys.initKeys(keyStore, "pass1", "pass1");
-	 * Keys.loadTrustedCertificates(keyStore); updates = new
-	 * UpdatesRepository(); //load this from file!!! initServer();
-	 * 
-	 * }
-	 * 
-	 * private void initServer() { server = new HTTPSServer(this, keyStore,
-	 * PORT); server.run(); }
-	 */
+	
 
 	private BlockChain loadBlockChain() {
 		intialiseDirs();
 		ObjectInput input = null;
 		try {
-			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + BLOCKCHAIN_DIR + "blockchain.ser");
+			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "blockchain.ser");
 			InputStream buffer = new BufferedInputStream(file);
 			input = new ObjectInputStream(buffer);
 			BlockChain temp = (BlockChain) input.readObject();
@@ -87,7 +88,7 @@ public class Miner {
 
 	private void saveBlockChain() {
 		try {
-			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + BLOCKCHAIN_DIR + "blockchain.ser");
+			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "blockchain.ser");
 			OutputStream buffer = new BufferedOutputStream(file);
 			ObjectOutput output = new ObjectOutputStream(buffer);
 			output.writeObject(blockChain);
@@ -102,7 +103,7 @@ public class Miner {
 		intialiseDirs();
 		ObjectInput input = null;
 		try {
-			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + BLOCKCHAIN_DIR + "currentblock.ser");
+			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "currentblock.ser");
 			InputStream buffer = new BufferedInputStream(file);
 			input = new ObjectInputStream(buffer);
 			Block temp = (Block) input.readObject();
@@ -124,7 +125,7 @@ public class Miner {
 
 	private void saveCurrentBlock() {
 		try {
-			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + BLOCKCHAIN_DIR + "currentblock.ser");
+			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "currentblock.ser");
 			OutputStream buffer = new BufferedOutputStream(file);
 			ObjectOutput output = new ObjectOutputStream(buffer);
 			output.writeObject(currentBlock);
@@ -135,13 +136,55 @@ public class Miner {
 		}
 	}
 	
+	private UpdatesRepository loadUpdatesRepo() {
+		intialiseDirs();
+		ObjectInput input = null;
+		try {
+			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "updatesRepo.ser");
+			InputStream buffer = new BufferedInputStream(file);
+			input = new ObjectInputStream(buffer);
+			UpdatesRepository temp = (UpdatesRepository) input.readObject();
+			input.close();
+			System.out.println("Updates repository loaded");
+			return temp;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			try {
+				input.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			return null;
+		} catch (IOException e) {
+			return null;
+		}
+	}
+	
+	private void saveUpdatesRepo() {
+		try {
+			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "updatesRepo.ser");
+			OutputStream buffer = new BufferedOutputStream(file);
+			ObjectOutput output = new ObjectOutputStream(buffer);
+			output.writeObject(updatesRepo);
+			output.close();
+			System.out.println("Updates repository saved");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public ArrayList<Transaction> getUpdatesForClient(PublicKey pub) {
+		return updatesRepo.getUpdate(pub);
+	}
+	
 	private void intialiseDirs() {
-		File dir = new File(Constants.DESKTOP_DIR + BLOCKCHAIN_DIR);
+		File dir = new File(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR);
 		dir.mkdirs();
+		dir = new File((Constants.DESKTOP_DIR + Constants.TRUSTED_CERTS_DIR));
 	}
 
-	public synchronized void recieveTransactions(ArrayList<Transaction> transaction) {
-		// TODO
+	public synchronized void receiveTransaction(Transaction transaction) {
+		System.out.println(transaction.toString());
 	}
 	
 	private void sendBlockHeaders() {
@@ -243,6 +286,7 @@ public class Miner {
 		System.out.println("-- Miner Saving --");
 		saveBlockChain();
 		saveCurrentBlock();
+		saveUpdatesRepo();
 		System.out.println("-- Miner Shutdown --");
 	}
 
@@ -260,7 +304,7 @@ public class Miner {
 					printBlockChain();
 				}
 			} else {
-				System.err.println("blockchain requires and argument");
+				System.err.println("blockchain requires an argument");
 			}
 
 		} else if (commands[0].equals("help")) {
