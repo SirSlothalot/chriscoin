@@ -24,4 +24,6 @@ public class Constants {
 	
 	public static final String MINER_CERT_GEN		= 	"/miner/gen-certs-miner.sh";
 	
+	public static final double GENESIS_AMOUNT		=	100.0;
+	
 }

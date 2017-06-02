@@ -10,11 +10,9 @@ public class Block {
 	private int transactionCount;
 	private HashMap<byte[], Transaction> transactions;
 
-	public Block(Transaction trans) throws NoSuchAlgorithmException, IOException {
+	public Block() {
 		transactions = new HashMap<byte[], Transaction>();
 		transactionCount = 0;
-		addTransaction(trans);
-
 	}
 
 	public void genHeader(byte[] prevBlockHash, int nonce, int diffTime) {

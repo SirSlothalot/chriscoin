@@ -22,11 +22,17 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Random;
 import java.util.Scanner;
+
+import javax.security.auth.x500.X500Principal;
+import java.security.cert.Certificate;
 
 public class Miner {
 
@@ -46,14 +52,15 @@ public class Miner {
 
 	Miner() {
 		System.out.println("-- Miner Initialising --");
-		blockChain = loadBlockChain();
-		currentBlock = loadCurrentBlock();
-		updatesRepo = loadUpdatesRepo();
-
+		
 		keyStore = Keys.initKeyStore(keyStore, "pass1", Constants.DESKTOP_DIR + Constants.MINER_DIR);
 		Keys.initKeys(keyStore, "pass1", "pass1", Constants.DESKTOP_DIR + Constants.MINER_DIR);
 		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR);
-
+		
+		blockChain = loadBlockChain();
+		currentBlock = loadCurrentBlock();
+		updatesRepo = loadUpdatesRepo();
+		
 		server = new HTTPSServer(this, keyStore, PORT);
 		server.run();
 		System.out.println("-- Miner Initialised --");
@@ -80,7 +87,7 @@ public class Miner {
 			}
 			return null;
 		} catch (IOException e) {
-			return new BlockChain();
+			return createBlockChain();
 		}
 	}
 
@@ -96,6 +103,34 @@ public class Miner {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private BlockChain createBlockChain() {
+		BlockChain blockChain = new BlockChain();
+		Transaction genesisTrans = new Transaction();
+		Enumeration<String> peers;
+		try {
+			peers = keyStore.aliases();
+			while (peers.hasMoreElements()) {
+				Certificate cert = keyStore.getCertificate(peers.nextElement());
+				if(cert != null) {
+					PublicKey pub = (PublicKey) cert.getPublicKey();
+					genesisTrans.addOut(Constants.GENESIS_AMOUNT, pub);
+				}
+			}
+		} catch (KeyStoreException e) {
+			e.printStackTrace();
+		}
+		Block genesisBlock = new Block();
+		genesisBlock.addTransaction(genesisTrans);
+		try {
+			genesisBlock.genHeader(null, proof(genesisBlock, 3), 3);
+		} catch (NoSuchAlgorithmException | IOException e) {
+			e.printStackTrace();
+		}
+		blockChain.put(genesisBlock);	
+		
+		return blockChain;
 	}
 
 	private Block loadCurrentBlock() {
@@ -211,16 +246,13 @@ public class Miner {
 			currentBlock.addTransaction(trans);
 		} else {
 			addBlockToChain(currentBlock);
-			createNewBlock(trans);
+			createNewBlock();
+			currentBlock.addTransaction(trans);
 		}
 	}
 
-	private void createNewBlock(Transaction trans) {
-		try {
-			currentBlock = new Block(trans);
-		} catch (NoSuchAlgorithmException | IOException e) {
-			e.printStackTrace();
-		}
+	private void createNewBlock() {
+		currentBlock = new Block();
 	}
 
 	private void addBlockToChain(Block block) {

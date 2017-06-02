@@ -104,10 +104,8 @@ public class Keys {
 					try {
 						X500Principal p = cert.getSubjectX500Principal();
 						String name = p.getName();
-						System.out.println(name);
 						String[] distinguishedNames = name.split(",");
 						name = distinguishedNames[0].substring(3);
-						System.out.println(name);
 						keyStore.setCertificateEntry(name, cert);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -135,7 +133,7 @@ public class Keys {
 	// }
 	// }
 
-	private static PrivateKey pemToPrivateKey(String filename) {
+	public static PrivateKey pemToPrivateKey(String filename) {
 		try {
 			Security.addProvider(new BouncyCastleProvider());
 			KeyFactory factory = KeyFactory.getInstance("RSA", "BC");
@@ -150,7 +148,7 @@ public class Keys {
 	}
 
 	// http://stackoverflow.com/questions/24137463/how-to-load-public-certificate-from-pem-file
-	private static X509Certificate pemToCert(String pem) {
+	public static X509Certificate pemToCert(String pem) {
 		String extension = pem.substring(pem.lastIndexOf(".") + 1, pem.length());
 		if (extension.equals("pem")) {
 			try {
