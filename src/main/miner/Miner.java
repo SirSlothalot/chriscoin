@@ -6,7 +6,6 @@ import main.generic.BlockHeaderChain;
 import main.generic.Constants;
 import main.generic.Hasher;
 import main.generic.Keys;
-import main.generic.TestMessage;
 import main.generic.Transaction;
 
 import java.io.BufferedInputStream;
@@ -37,12 +36,12 @@ public class Miner {
 	Block currentBlock;
 
 	private boolean hasUpdates;
-	
+
 	private static int PORT = 9999;
 	private HTTPSServer server;
-	
+
 	private UpdatesRepository updatesRepo;
-	
+
 	private KeyStore keyStore;
 
 	Miner() {
@@ -50,23 +49,22 @@ public class Miner {
 		blockChain = loadBlockChain();
 		currentBlock = loadCurrentBlock();
 		updatesRepo = loadUpdatesRepo();
-		
+
 		keyStore = Keys.initKeyStore(keyStore, "pass1", Constants.DESKTOP_DIR + Constants.MINER_DIR);
 		Keys.initKeys(keyStore, "pass1", "pass1", Constants.DESKTOP_DIR + Constants.MINER_DIR);
-		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR + Constants.MINER_DIR);
-		
+		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR);
+
 		server = new HTTPSServer(this, keyStore, PORT);
 		server.run();
 		System.out.println("-- Miner Initialised --");
 	}
-	
-	
 
 	private BlockChain loadBlockChain() {
 		intialiseDirs();
 		ObjectInput input = null;
 		try {
-			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "blockchain.ser");
+			InputStream file = new FileInputStream(
+					Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "blockchain.ser");
 			InputStream buffer = new BufferedInputStream(file);
 			input = new ObjectInputStream(buffer);
 			BlockChain temp = (BlockChain) input.readObject();
@@ -88,7 +86,8 @@ public class Miner {
 
 	private void saveBlockChain() {
 		try {
-			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "blockchain.ser");
+			OutputStream file = new FileOutputStream(
+					Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "blockchain.ser");
 			OutputStream buffer = new BufferedOutputStream(file);
 			ObjectOutput output = new ObjectOutputStream(buffer);
 			output.writeObject(blockChain);
@@ -103,7 +102,8 @@ public class Miner {
 		intialiseDirs();
 		ObjectInput input = null;
 		try {
-			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "currentblock.ser");
+			InputStream file = new FileInputStream(
+					Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "currentblock.ser");
 			InputStream buffer = new BufferedInputStream(file);
 			input = new ObjectInputStream(buffer);
 			Block temp = (Block) input.readObject();
@@ -125,22 +125,24 @@ public class Miner {
 
 	private void saveCurrentBlock() {
 		try {
-			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "currentblock.ser");
+			OutputStream file = new FileOutputStream(
+					Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "currentblock.ser");
 			OutputStream buffer = new BufferedOutputStream(file);
 			ObjectOutput output = new ObjectOutputStream(buffer);
 			output.writeObject(currentBlock);
 			output.close();
-			System.out.println("Current block saved..." + "\nTransaction count: " + currentBlock.getTransactionCount());
+			System.out.println("Current block saved");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private UpdatesRepository loadUpdatesRepo() {
 		intialiseDirs();
 		ObjectInput input = null;
 		try {
-			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "updatesRepo.ser");
+			InputStream file = new FileInputStream(
+					Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "updatesRepo.ser");
 			InputStream buffer = new BufferedInputStream(file);
 			input = new ObjectInputStream(buffer);
 			UpdatesRepository temp = (UpdatesRepository) input.readObject();
@@ -159,10 +161,11 @@ public class Miner {
 			return new UpdatesRepository();
 		}
 	}
-	
+
 	private void saveUpdatesRepo() {
 		try {
-			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "updatesRepo.ser");
+			OutputStream file = new FileOutputStream(
+					Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR + "updatesRepo.ser");
 			OutputStream buffer = new BufferedOutputStream(file);
 			ObjectOutput output = new ObjectOutputStream(buffer);
 			output.writeObject(updatesRepo);
@@ -172,11 +175,11 @@ public class Miner {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public ArrayList<Transaction> getUpdatesForClient(PublicKey pub) {
 		return updatesRepo.getUpdate(pub);
 	}
-	
+
 	private void intialiseDirs() {
 		File dir = new File(Constants.DESKTOP_DIR + Constants.MINER_DIR + Constants.BLOCKCHAIN_DIR);
 		dir.mkdirs();
@@ -185,14 +188,15 @@ public class Miner {
 
 	public synchronized void receiveTransaction(Transaction transaction) {
 		System.out.println(transaction.toString());
+		appendTransaction(transaction);
 	}
-	
+
 	private void sendBlockHeaders() {
 		BlockHeaderChain headChain = blockChain.genBlockHeaderChain();
-		
+
 		// TODO Send shit
 	}
-	
+
 	private Block findTransactionBlock(Transaction trans) {
 		try {
 			return blockChain.getBlock(blockChain.findTransaction(Hasher.hash(trans)));
@@ -201,7 +205,7 @@ public class Miner {
 			return null;
 		}
 	}
-	
+
 	private void appendTransaction(Transaction trans) {
 		if (!currentBlock.isFull()) {
 			currentBlock.addTransaction(trans);
@@ -220,15 +224,33 @@ public class Miner {
 	}
 
 	private void addBlockToChain(Block block) {
+		try {
+			block.genHeader(blockChain.getTopHash(), proof(block, 3), 3);
+		} catch (NoSuchAlgorithmException | IOException e) {
+			e.printStackTrace();
+		}
 		blockChain.put(block);
+		addToRepositry(block);
 		hasUpdates = true;
+	}
+
+	private void addToRepositry(Block block) {
+		Transaction[] transArr = (Transaction[]) block.getTransactions().values().toArray();
+		for (int k = 0; k < transArr.length; k++) {
+			for (int i = 0; i < transArr[k].getInputCount(); i++) {
+				updatesRepo.addUpdate(blockChain.getBlock(blockChain.findTransaction(transArr[k].getParentHash(i))).getTransaction(transArr[k].getParentHash(i)).getRecieverKey(transArr[k].getParentOutputIndex(i)), transArr[k]);
+			}
+			for (int o = 0; o < transArr[k].getOutputCount(); o++) {
+				updatesRepo.addUpdate(transArr[k].getRecieverKey(o), transArr[k]);
+			}
+		}
 	}
 
 	/*
 	 * Finds nonce that when hashed with msg, fulfills the test given the
 	 * difficulty. Returns the int of the nonce that fufils the test.
 	 */
-	public static int proof(TestMessage msg, int difficulty) throws IOException, NoSuchAlgorithmException {
+	public static int proof(Block block, int difficulty) throws IOException, NoSuchAlgorithmException {
 		System.out.print("Finding proof of work...\n");
 		// Random integer
 		Random rn = new Random();
@@ -236,7 +258,7 @@ public class Miner {
 		// Infinite Loop
 		while (true) {
 			// Converting data and int to byte[]
-			byte[] data1 = Hasher.serialize(msg);
+			byte[] data1 = Hasher.serialize(block);
 			byte[] data2 = ByteBuffer.allocate(4).putInt(nonce).array();
 			// Combining data into one byte[]
 			byte[] combined = new byte[data1.length + data2.length];
@@ -281,7 +303,7 @@ public class Miner {
 	private void printBlockChain() {
 		System.out.println(blockChain.toString());
 	}
-	
+
 	public void shutdown() {
 		System.out.println("-- Miner Saving --");
 		saveBlockChain();

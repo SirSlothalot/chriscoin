@@ -31,7 +31,7 @@ public class Wallet {
 		
 		keyStore = Keys.initKeyStore(keyStore, "pass1", Constants.DESKTOP_DIR + Constants.WALLET_DIR);
 		Keys.initKeys(keyStore, "pass1", "pass1", Constants.DESKTOP_DIR + Constants.WALLET_DIR);
-		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR + Constants.WALLET_DIR);
+		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR);
 		
 		client = new HTTPSClient(this, keyStore, HOST, PORT);
 		refresh();

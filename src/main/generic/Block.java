@@ -58,6 +58,10 @@ public class Block {
 		return transactions.containsKey(transHash);
 	}
 	
+	public Transaction getTransaction(byte[] transHash) {
+		return transactions.get(transHash);
+	}
+	
 	@Override
 	public String toString() {
 		String temp = blockHeader.toString() + "\n";
