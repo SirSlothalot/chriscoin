@@ -107,12 +107,16 @@ public class Miner {
 		BlockChain blockChain = new BlockChain();
 		Transaction genesisTrans = new Transaction();
 		Enumeration<String> peers;
+		String alias;
 		try {
 			peers = keyStore.aliases();
 			while (peers.hasMoreElements()) {
-				Certificate cert = keyStore.getCertificate(peers.nextElement());
+				alias = peers.nextElement();
+				System.out.println("Alias: " + alias);
+				Certificate cert = keyStore.getCertificate(alias);
 				if (cert != null) {
 					PublicKey pub = (PublicKey) cert.getPublicKey();
+					System.out.println("Alias hash code: " + pub.hashCode());
 					genesisTrans.addOut(Constants.GENESIS_AMOUNT, pub);
 				}
 			}
@@ -122,7 +126,7 @@ public class Miner {
 		Block genesisBlock = new Block();
 		genesisBlock.addTransaction(genesisTrans);
 		try {
-			genesisBlock.genHeader(null, proof(genesisBlock, 3), 3);
+			genesisBlock.genHeader(null, proof(genesisBlock, 1), 1);
 		} catch (NoSuchAlgorithmException | IOException e) {
 			e.printStackTrace();
 		}
@@ -213,7 +217,9 @@ public class Miner {
 	}
 
 	public ArrayList<Transaction> getUpdatesForClient(PublicKey pub) {
+		System.out.println(updatesRepo.toString());
 		return updatesRepo.getUpdate(pub);
+		
 	}
 
 	private void intialiseDirs() {
@@ -281,6 +287,8 @@ public class Miner {
 				updatesRepo.addUpdate(trans.getRecieverKey(o), trans);
 			}
 		}
+		
+		System.out.println(updatesRepo.toString());
 	}
 
 	/*

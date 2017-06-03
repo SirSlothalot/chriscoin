@@ -6,11 +6,15 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.security.KeyFactory;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.Security;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Enumeration;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -105,6 +109,10 @@ public class Keys {
 						String[] distinguishedNames = name.split(",");
 						name = distinguishedNames[0].substring(3);
 						keyStore.setCertificateEntry(name, cert);
+						if(name.equals("Bob")) {
+							System.out.println(name);
+							System.out.println(cert.toString());
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

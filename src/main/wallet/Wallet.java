@@ -40,6 +40,7 @@ public class Wallet {
 	private boolean refresh() {
 		try {
 			PublicKey pub = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
+			System.out.println("Wallet HashCode: " + pub.hashCode());
 			if (client.run(pub)) {
 				return true;
 			} else {
