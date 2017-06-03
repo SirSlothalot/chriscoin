@@ -1,8 +1,6 @@
 package main.miner;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;

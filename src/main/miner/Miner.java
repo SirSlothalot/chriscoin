@@ -116,7 +116,7 @@ public class Miner {
 				Certificate cert = keyStore.getCertificate(alias);
 				if (cert != null) {
 					PublicKey pub = (PublicKey) cert.getPublicKey();
-					System.out.println("Alias hash code: " + pub.hashCode());
+					// System.out.println("Alias hash code: " + pub.hashCode());
 					genesisTrans.addOut(Constants.GENESIS_AMOUNT, pub);
 				}
 			}
@@ -159,7 +159,7 @@ public class Miner {
 			}
 			return null;
 		} catch (IOException e) {
-			return null;
+			return createNewBlock();
 		}
 	}
 
@@ -217,9 +217,9 @@ public class Miner {
 	}
 
 	public ArrayList<Transaction> getUpdatesForClient(PublicKey pub) {
-		System.out.println(updatesRepo.toString());
+		// System.out.println(updatesRepo.toString());
 		return updatesRepo.getUpdate(pub);
-		
+
 	}
 
 	private void intialiseDirs() {
@@ -229,7 +229,7 @@ public class Miner {
 	}
 
 	public synchronized void receiveTransaction(Transaction transaction) {
-		System.out.println(transaction.toString());
+		// System.out.println(transaction.toString());
 		appendTransaction(transaction);
 	}
 
@@ -253,18 +253,18 @@ public class Miner {
 			currentBlock.addTransaction(trans);
 		} else {
 			addBlockToChain(currentBlock);
-			createNewBlock();
+			currentBlock = createNewBlock();
 			currentBlock.addTransaction(trans);
 		}
 	}
 
-	private void createNewBlock() {
-		currentBlock = new Block();
+	private Block createNewBlock() {
+		return new Block();
 	}
 
 	private void addBlockToChain(Block block) {
 		try {
-			block.genHeader(blockChain.getTopHash(), proof(block, 3), 3);
+			block.genHeader(blockChain.getTopHash(), proof(block, 1), 1);
 		} catch (NoSuchAlgorithmException | IOException e) {
 			e.printStackTrace();
 		}
@@ -278,17 +278,20 @@ public class Miner {
 		for (int k = 0; k < transArr.length; k++) {
 			Transaction trans = (Transaction) transArr[k];
 			for (int i = 0; i < trans.getInputCount(); i++) {
-				updatesRepo.addUpdate(
-						blockChain.getBlock(blockChain.findTransaction(trans.getParentHash(i)))
-								.getTransaction(trans.getParentHash(i)).getRecieverKey(trans.getParentOutputIndex(i)),
-						trans);
+				System.out.println(i);
+				byte[] parentHash = trans.getParentHash(i);
+				int parentOutputIndex = trans.getParentOutputIndex(i);
+				byte[] blockHash = blockChain.findTransaction(parentHash);
+				Block blockGet = blockChain.getBlock(blockHash);
+				Transaction transaction = blockGet.getTransaction(parentHash);
+				updatesRepo.addUpdate(transaction.getRecieverKey(parentOutputIndex), trans);
 			}
 			for (int o = 0; o < trans.getOutputCount(); o++) {
 				updatesRepo.addUpdate(trans.getRecieverKey(o), trans);
 			}
 		}
-		
-		System.out.println(updatesRepo.toString());
+
+		// System.out.println(updatesRepo.toString());
 	}
 
 	/*

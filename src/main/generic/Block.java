@@ -38,7 +38,7 @@ public class Block implements Serializable {
 	}
 	
 	public boolean isFull() {
-		return (transactionCount >= 1000);
+		return (transactionCount >= 10);
 	}
 
 	public BlockHeader getBlockHeader() {
