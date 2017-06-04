@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.ConnectException;
 import java.security.KeyStore;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -78,6 +79,8 @@ public class HTTPSClient {
 				thread.start();
 				thread.join();
 				return true;
+			} catch (ConnectException e) {
+				return false;
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;

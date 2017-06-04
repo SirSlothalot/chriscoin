@@ -46,7 +46,7 @@ public class Wallet {
 			if (client.run(pub)) {
 				return true;
 			} else {
-				System.err.println("Can't connect to server");
+				System.err.println("Coud not connect to " + HOST + ".\nConsider changing host by using the 'host <ip-address>' command.");
 				return false;
 			}
 		} catch (KeyStoreException e) {
