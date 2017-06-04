@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.util.Date;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 @SuppressWarnings("serial")
@@ -14,8 +16,11 @@ public class Transaction implements Serializable {
 	
 	int outputCounter;
 	ArrayList<Output> outs;
+	
+	Timestamp timeStamp;
 
 	public Transaction() {
+		timeStamp = new Timestamp(new Date().getTime());
 		this.inputCounter = 0;
 		this.ins = new ArrayList<Input>();
 		this.outputCounter = 0;
