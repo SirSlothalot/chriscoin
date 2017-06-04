@@ -45,7 +45,7 @@ public class BlockHeader implements Serializable {
 	public String toString() {
 		try {
 			String temp = "BlockHeader Hash: " + Hasher.bytesToHex(Hasher.hash(this)) + "\n";
-			temp += "Previous Block: " + Hasher.bytesToHex(prevBlockHeadHash) + "\n";
+//			temp += "Previous Block: " + Hasher.bytesToHex(prevBlockHeadHash) + "\n";
 			temp += "Merkle Root: " + Hasher.bytesToHex(merkleRoot) + "\n";
 			temp += "Time Stamp: " + timeStamp.toString() + "\n";
 			temp += "Nonce: " + nonce;

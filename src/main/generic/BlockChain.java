@@ -3,6 +3,7 @@ package main.generic;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.util.HashMap;
 
 @SuppressWarnings("serial")
@@ -35,28 +36,8 @@ public class BlockChain implements Serializable {
 		return topBlockHash;
 	}
 
-	public byte[] findTransaction(byte[] transHash) {
-		
-		Block curBlock = blockChain.get(topBlockHash);
-
-		while (!curBlock.hasTransaction(transHash)) {
-			if (blockChain.containsKey(curBlock.getBlockHeader().getPrevBlockHeadHash())) {
-				curBlock = blockChain.get(curBlock.getBlockHeader().getPrevBlockHeadHash());
-			} else {
-				return null;
-			}
-		}
-
-		try {
-			return Hasher.hash(curBlock.getBlockHeader());
-		} catch (NoSuchAlgorithmException | IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-
-	}
-	
 	public Block findBlock(byte[] transHash) {
+
 		Block curBlock = blockChain.get(topBlockHash);
 
 		while (!curBlock.hasTransaction(transHash)) {
@@ -68,16 +49,33 @@ public class BlockChain implements Serializable {
 		}
 		
 		return curBlock;
+
 	}
-	
+
+	public PublicKey findTransactionReciever(byte[] transHash, int outIndex) {
+
+		Block curBlock = blockChain.get(topBlockHash);
+		while (!curBlock.hasTransaction(transHash)) {
+			System.err.println(curBlock.toString());
+			if (blockChain.containsKey(curBlock.getBlockHeader().getPrevBlockHeadHash())) {
+				curBlock = blockChain.get(curBlock.getBlockHeader().getPrevBlockHeadHash());
+			} else {
+				return null;
+			}
+		}
+
+		return curBlock.getTransaction(transHash).getRecieverKey(outIndex);
+
+	}
+
 	public int getBlockCount() {
 		return blockChain.size();
 	}
-	
+
 	public Block getBlock(byte[] blockHash) {
 		return blockChain.get(blockHash);
 	}
-	
+
 	public BlockHeaderChain genBlockHeaderChain() {
 		BlockHeaderChain headChain = new BlockHeaderChain();
 		byte[] currentHash = topBlockHash;
@@ -87,7 +85,7 @@ public class BlockChain implements Serializable {
 		}
 		return headChain;
 	}
-	
+
 	@Override
 	public String toString() {
 		String temp = "-- BlockChain --\n";

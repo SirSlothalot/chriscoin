@@ -15,7 +15,6 @@ import java.util.Scanner;
 import main.generic.*;
 
 public class Wallet {
-	
 
 	private KeyStore keyStore;
 
@@ -31,11 +30,11 @@ public class Wallet {
 		System.out.println("-- Wallet Initialising --");
 		records = loadWallet();
 		System.out.println("-- Wallet Initialised --");
-		
+
 		keyStore = Keys.initKeyStore(keyStore, "pass1", Constants.DESKTOP_DIR + Constants.WALLET_DIR);
 		Keys.initKeys(keyStore, "pass1", "pass1", Constants.DESKTOP_DIR + Constants.WALLET_DIR);
 		Keys.loadTrustedCertificates(keyStore, Constants.DESKTOP_DIR);
-		
+
 		client = new HTTPSClient(this, keyStore, HOST, PORT);
 		refresh();
 	}
@@ -80,17 +79,17 @@ public class Wallet {
 			return false;
 		}
 	}
-	
+
 	public synchronized void receiveMessage(BlockHeaderChain message) {
 
 		// TODO
-		
+
 	}
-	
+
 	public synchronized void receiveMessage(BlockHeader message) {
 
 		// TODO
-		
+
 	}
 
 	private void newTransaction(String amount, String receiver) {
@@ -141,6 +140,7 @@ public class Wallet {
 		Message message = new Message(t, privateKey, myKey);
 		
 		if(client.run(message)) {
+			
 			System.out.println(amount + " ChrisCoins were sent to the miners.");
 		} else {
 			System.out.println("Could not send ChrisCoins!");
@@ -182,21 +182,21 @@ public class Wallet {
 
 	private void addRecord(Transaction t) {
 		int numInputs = t.getInputCount();
-		for(int i = 0; i < numInputs; i++) {
+		for (int i = 0; i < numInputs; i++) {
 			removeRecordIfExists(t.getParentHash(i));
 		}
 		records.add(t);
 	}
 
 	private void removeRecordIfExists(byte[] transHash) {
-		for(int i = 0; i < records.size(); i++) {
+		for (int i = 0; i < records.size(); i++) {
 			byte[] recordTransHash = null;
 			try {
 				recordTransHash = Hasher.hash(records.get(i));
 			} catch (NoSuchAlgorithmException | IOException e) {
 				e.printStackTrace();
 			}
-			if(Arrays.equals(recordTransHash, transHash)) {
+			if (Arrays.equals(recordTransHash, transHash)) {
 				records.remove(i);
 				break;
 			}
@@ -209,7 +209,8 @@ public class Wallet {
 
 	private void saveWallet() {
 		try {
-			OutputStream file = new FileOutputStream(Constants.DESKTOP_DIR + Constants.WALLET_DIR + Constants.RECORDS_DIR + "records.ser");
+			OutputStream file = new FileOutputStream(
+					Constants.DESKTOP_DIR + Constants.WALLET_DIR + Constants.RECORDS_DIR + "records.ser");
 			OutputStream buffer = new BufferedOutputStream(file);
 			ObjectOutput output = new ObjectOutputStream(buffer);
 			output.writeObject(records);
@@ -226,7 +227,8 @@ public class Wallet {
 		intialiseDirs();
 		ObjectInput input = null;
 		try {
-			InputStream file = new FileInputStream(Constants.DESKTOP_DIR + Constants.WALLET_DIR + Constants.RECORDS_DIR + "records.ser");
+			InputStream file = new FileInputStream(
+					Constants.DESKTOP_DIR + Constants.WALLET_DIR + Constants.RECORDS_DIR + "records.ser");
 			InputStream buffer = new BufferedInputStream(file);
 			input = new ObjectInputStream(buffer);
 			ArrayList<Transaction> temp = (ArrayList<Transaction>) input.readObject();
@@ -251,8 +253,7 @@ public class Wallet {
 		dir.mkdirs();
 		dir = new File(Constants.DESKTOP_DIR + Constants.TRUSTED_CERTS_DIR);
 		dir.mkdirs();
-		
-		
+
 	}
 
 	public double calcBalance() {
@@ -279,7 +280,7 @@ public class Wallet {
 		}
 
 	}
-	
+
 	private void viewRecords() {
 		if (records.size() == 0) {
 			System.out.println("No records to show");
@@ -302,7 +303,7 @@ public class Wallet {
 			client = new HTTPSClient(this, keyStore, HOST, PORT);
 		}
 	}
-	
+
 	public void shutdown() {
 		System.out.println("-- Wallet Saving --");
 		saveWallet();
@@ -346,7 +347,7 @@ public class Wallet {
 		} else if (commands[0].equals("help")) {
 			printHelp();
 		} else {
-			System.err.println("'" +command + "' is not a valid command");
+			System.err.println("'" + command + "' is not a valid command");
 		}
 	}
 

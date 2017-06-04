@@ -9,9 +9,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.security.KeyStore;
 import java.security.PublicKey;
-import java.security.cert.Certificate;
-import javax.security.cert.X509Certificate;
-
 import main.generic.Message;
 
 import java.util.ArrayList;
@@ -28,7 +25,6 @@ import javax.net.ssl.TrustManagerFactory;
 
 public class HTTPSServer {
     private int port = 9999;
-    private boolean isServerDone = false;
     
     private KeyStore keyStore;
     private Miner miner;

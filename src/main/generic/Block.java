@@ -27,14 +27,17 @@ public class Block implements Serializable {
 
 	}
 
-	public boolean addTransaction(Transaction trans) {
+	public HashMap<byte[], Transaction> addTransaction(Transaction trans) {
+		byte[] transHash = null;
+		Transaction tra = trans;
 		try {
-			transactions.put(Hasher.hash(trans), trans);
-			transactionCount++;
-			return true;
+			transHash = Hasher.hash(trans);
 		} catch (Exception e) {
-			return false;
+			e.printStackTrace();
 		}
+		transactions.put(transHash, tra);
+		transactionCount++;
+		return transactions;
 	}
 	
 	public boolean isFull() {
