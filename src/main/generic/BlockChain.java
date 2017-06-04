@@ -56,6 +56,20 @@ public class BlockChain implements Serializable {
 
 	}
 	
+	public Block findBlock(byte[] transHash) {
+		Block curBlock = blockChain.get(topBlockHash);
+
+		while (!curBlock.hasTransaction(transHash)) {
+			if (blockChain.containsKey(curBlock.getBlockHeader().getPrevBlockHeadHash())) {
+				curBlock = blockChain.get(curBlock.getBlockHeader().getPrevBlockHeadHash());
+			} else {
+				return null;
+			}
+		}
+		
+		return curBlock;
+	}
+	
 	public int getBlockCount() {
 		return blockChain.size();
 	}

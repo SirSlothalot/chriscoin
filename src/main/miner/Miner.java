@@ -6,6 +6,7 @@ import main.generic.BlockHeaderChain;
 import main.generic.Constants;
 import main.generic.Hasher;
 import main.generic.Keys;
+import main.generic.Message;
 import main.generic.Transaction;
 
 import java.io.BufferedInputStream;
@@ -24,7 +25,10 @@ import java.nio.ByteBuffer;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
+import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Random;
@@ -216,8 +220,8 @@ public class Miner {
 		}
 	}
 
-	public ArrayList<Transaction> getUpdatesForClient(PublicKey pub) {
-		// System.out.println(updatesRepo.toString());
+	public ArrayList<Message> getUpdatesForClient(PublicKey pub) {
+		System.out.println(updatesRepo.toString());
 		return updatesRepo.getUpdate(pub);
 
 	}
@@ -228,9 +232,69 @@ public class Miner {
 		dir = new File((Constants.DESKTOP_DIR + Constants.TRUSTED_CERTS_DIR));
 	}
 
-	public synchronized void receiveTransaction(Transaction transaction) {
-		// System.out.println(transaction.toString());
-		appendTransaction(transaction);
+	public synchronized void receiveTransaction(Message message) {
+		if(validMessage(message) && validTransaction(message.getTransaction(), message.getPublicKey())) {
+			appendTransaction(message.getTransaction());
+		}
+	}
+
+	private boolean validMessage(Message message) {
+		try {
+			Signature sig = Signature.getInstance("SHA256withRSA");
+		    sig.initVerify(message.getPublicKey());
+		    sig.update(message.getByteTransaction());
+		    return sig.verify(message.getSignedTransaction());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private boolean validTransaction(Transaction transaction, PublicKey publicKey) {
+		PublicKey senderPub = publicKey;
+		PublicKey parentOutPub = null;
+		PublicKey receiverPub = null;
+		
+		double verifiedAmount = 0.0;
+		double targetAmount = 0.0;
+		
+		byte[] parentTransactionHash;
+		int parentOutputIndex;
+		Block parentBlock;
+		Transaction parentTransaction;
+		String alias;
+		
+		//verify inputs
+		for(int i = 0; i < transaction.getInputCount(); i++) {
+			parentTransactionHash = transaction.getParentHash(i);
+			parentOutputIndex = transaction.getParentOutputIndex(i);
+			
+			try {
+				parentBlock = blockChain.findBlock(parentTransactionHash);
+				parentTransaction = parentBlock.getTransaction(parentTransactionHash);
+				
+				//check the output of a parent transaction corresponds to the sender
+				if(parentTransaction.getRecieverKey(parentOutputIndex).equals(senderPub)) {
+					verifiedAmount += parentTransaction.getOutputAmount(parentOutputIndex);
+				} else {
+					System.err.println("One or more transaction inputs are invalid.");
+					return false;
+				}
+			} catch (NullPointerException e) {
+				System.err.println("One or more transaction inputs are invalid.");
+				return false;
+			}
+		}
+		
+		//count the amount to be sent
+		for(int i = 0; i < transaction.getOutputCount(); i++) {
+			targetAmount += transaction.getOutputAmount(i);
+		}
+		
+		if(targetAmount <= verifiedAmount && targetAmount >= 0.0) {
+			return true;
+		}
+		return false;
 	}
 
 	private void sendBlockHeaders() {
@@ -275,8 +339,19 @@ public class Miner {
 
 	private void addToRepositry(Block block) {
 		Object[] transArr = block.getTransactions().values().toArray();
+		PublicKey publicKey = null;
+		PrivateKey privateKey = null;
+		
+		try {
+			publicKey = (PublicKey) keyStore.getCertificate("my-certificate").getPublicKey();
+			privateKey = (PrivateKey) keyStore.getKey("my-private-key", "pass1".toCharArray());
+		} catch (KeyStoreException | UnrecoverableKeyException | NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		
 		for (int k = 0; k < transArr.length; k++) {
 			Transaction trans = (Transaction) transArr[k];
+			Message message = new Message(trans, privateKey, publicKey);
 			for (int i = 0; i < trans.getInputCount(); i++) {
 				System.out.println(i);
 				byte[] parentHash = trans.getParentHash(i);
@@ -284,10 +359,10 @@ public class Miner {
 				byte[] blockHash = blockChain.findTransaction(parentHash);
 				Block blockGet = blockChain.getBlock(blockHash);
 				Transaction transaction = blockGet.getTransaction(parentHash);
-				updatesRepo.addUpdate(transaction.getRecieverKey(parentOutputIndex), trans);
+				updatesRepo.addUpdate(message, transaction.getRecieverKey(parentOutputIndex));
 			}
 			for (int o = 0; o < trans.getOutputCount(); o++) {
-				updatesRepo.addUpdate(trans.getRecieverKey(o), trans);
+				updatesRepo.addUpdate(message, trans.getRecieverKey(o));
 			}
 		}
 

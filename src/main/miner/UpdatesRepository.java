@@ -1,38 +1,39 @@
 package main.miner;
 
 import java.io.Serializable;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import main.generic.Message;
 import main.generic.Transaction;
 
 @SuppressWarnings("serial")
 public class UpdatesRepository implements Serializable{
 	//array of messages because there could be multiple updates for a client
-	HashMap<Integer, ArrayList<Transaction>> updates;
+	HashMap<Integer, ArrayList<Message>> updates;
 	
 	public UpdatesRepository() {
-		updates = new HashMap<Integer, ArrayList<Transaction>>();
+		updates = new HashMap<Integer, ArrayList<Message>>();
 	}
 	
 	//return message if there is an update, null otherwise
-	public ArrayList<Transaction> getUpdate(PublicKey receiver) {
+	public ArrayList<Message> getUpdate(PublicKey receiver) {
 		return updates.remove(receiver.hashCode());
-//		updates.put(receiver, null);
-//		return messages;
 	}
 	
-	public void addUpdate(PublicKey receiver, Transaction newMessage) {
+	public void addUpdate(Message message, PublicKey receiver) {
 		int hashCode = receiver.hashCode();
-		ArrayList<Transaction> messages = updates.get(hashCode);
+		ArrayList<Message> messages = updates.get(hashCode);
 		if(messages == null) {
-			messages = new ArrayList<Transaction>();
-			messages.add(newMessage);
+			messages = new ArrayList<Message>();
+			messages.add(message);
 			updates.put(hashCode, messages);
 		} else {
-			messages.add(newMessage);
+			messages.add(message);
 			updates.put(hashCode, messages);
 		}
 	}
@@ -41,18 +42,18 @@ public class UpdatesRepository implements Serializable{
 	public String toString() {
 		String str = "-- Updates Repository --\n\n";
 		int hashCode;
-		ArrayList<Transaction> transactions;
+		ArrayList<Message> messages;
 		
 		
-		for(Map.Entry<Integer,ArrayList<Transaction>> entry : updates.entrySet()){
+		for(Map.Entry<Integer,ArrayList<Message>> entry : updates.entrySet()){
 		    hashCode = entry.getKey();
-		    transactions = entry.getValue();
+		    messages = entry.getValue();
 		    
 		    str += "Public key: " + hashCode + "\n\n";
 		    int i = 1;
-		    for(Transaction t : transactions) {
+		    for(Message m : messages) {
 		    	str += "Transaction " + i +"\n";
-		    	str += t.toString() + "\n\n";
+		    	str += m.getTransaction().toString() + "\n\n";
 		    	i++;
 		    }
 		    str += "\n";

@@ -11,6 +11,9 @@ import java.security.KeyStore;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import javax.security.cert.X509Certificate;
+
+import main.generic.Message;
+
 import java.util.ArrayList;
 
 import javax.net.ssl.KeyManager;
@@ -22,8 +25,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-
-import main.generic.Transaction;
 
 public class HTTPSServer {
     private int port = 9999;
@@ -165,7 +166,7 @@ public class HTTPSServer {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                 
                 String line = null;
-                Transaction message = null;
+                Message message = null;
                 while((line = bufferedReader.readLine()) != null){
             		System.out.println("Inut : "+line);
            
@@ -179,7 +180,7 @@ public class HTTPSServer {
                 		}
                     	
                     	
-                    	ArrayList<Transaction> outgoingMessages = miner.getUpdatesForClient(publicKey);
+                    	ArrayList<Message> outgoingMessages = miner.getUpdatesForClient(publicKey);
                     	if(outgoingMessages == null) {
                     		printWriter.println("No new messages for client");
                             printWriter.flush();
@@ -204,7 +205,7 @@ public class HTTPSServer {
                     	break;
                     } else if(line.trim().equals("Imbound message")) {
                     	//receive message
-                    	while((message = (Transaction) inputStream.readObject()) != null ){
+                    	while((message = (Message) inputStream.readObject()) != null ){
                 			miner.receiveTransaction(message);
                     		printWriter.println("Miner received message");
                             printWriter.flush();

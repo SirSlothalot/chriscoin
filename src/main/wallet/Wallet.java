@@ -4,7 +4,10 @@ import java.io.*;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
+import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -53,16 +56,28 @@ public class Wallet {
 		}
 	}
 
-	// PrivateKey privKey = (PrivateKey) keyStore.getKey("my-private-key",
-	// "pass1".toCharArray());
 	// PublicKey pubKey = (PublicKey)
 	// keyStore.getCertificate("my-certificate").getPublicKey();
 	// PublicKey receiverKey = (PublicKey)
 	// keyStore.getCertificate("peer-certificate-0").getPublicKey();
 
-	public synchronized void receiveMessages(ArrayList<Transaction> message) {
-		for (Transaction trans : message) {
-			addRecord(trans);
+	public synchronized void receiveMessages(ArrayList<Message> messages) {
+		for (Message message : messages) {
+			if(validMessage(message)) {
+				addRecord(message.getTransaction());
+			}
+		}
+	}
+	
+	private boolean validMessage(Message message) {
+		try {
+			Signature sig = Signature.getInstance("SHA256withRSA");
+		    sig.initVerify(message.getPublicKey());
+		    sig.update(message.getByteTransaction());
+		    return sig.verify(message.getSignedTransaction());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
 		}
 	}
 	
@@ -116,7 +131,16 @@ public class Wallet {
 		t.addOut(dAmount, receiverKey);
 		t.addOut(total - dAmount, myKey);
 		
-		if(client.run(t)) {
+		PrivateKey privateKey = null;
+		try {
+			privateKey = (PrivateKey) keyStore.getKey("my-private-key", "pass1".toCharArray());
+		} catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+
+		Message message = new Message(t, privateKey, myKey);
+		
+		if(client.run(message)) {
 			System.out.println(amount + " ChrisCoins were sent to the miners.");
 		} else {
 			System.out.println("Could not send ChrisCoins!");

@@ -20,7 +20,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-import main.generic.Transaction;
+import main.generic.Message;
 
 public class HTTPSClient {
 	private String host = "127.0.0.1";
@@ -159,12 +159,12 @@ public class HTTPSClient {
 
 					// Receive update
 					String line = null;
-					ArrayList<Transaction> incomingMessages = null;
+					ArrayList<Message> incomingMessages = null;
 
 					while ((line = bufferedReader.readLine()) != null) {
 						System.out.println("Inut : " + line);
 						if (line.trim().equals("Imbound message")) {
-							while ((incomingMessages = (ArrayList<Transaction>) inputStream.readObject()) != null) {
+							while ((incomingMessages = (ArrayList<Message>) inputStream.readObject()) != null) {
 								wallet.receiveMessages(incomingMessages);
 								incomingMessages = null;
 								printWriter.println("Client received message");

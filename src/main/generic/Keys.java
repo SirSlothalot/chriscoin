@@ -109,10 +109,6 @@ public class Keys {
 						String[] distinguishedNames = name.split(",");
 						name = distinguishedNames[0].substring(3);
 						keyStore.setCertificateEntry(name, cert);
-						if(name.equals("Bob")) {
-							System.out.println(name);
-							System.out.println(cert.toString());
-						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
