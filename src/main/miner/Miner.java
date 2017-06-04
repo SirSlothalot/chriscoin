@@ -267,21 +267,24 @@ public class Miner {
 		//verify inputs
 		for(int i = 0; i < transaction.getInputCount(); i++) {
 			parentTransactionHash = transaction.getParentHash(i);
-			parentOutputIndex = transaction.getParentOutputIndex(i);
-			
+			parentOutputIndex = transaction.getParentOutputIndex(i);			
 			try {
+				System.err.println("poo");
 				parentBlock = blockChain.findBlock(parentTransactionHash);
+				System.err.println(parentBlock.toString());
 				parentTransaction = parentBlock.getTransaction(parentTransactionHash);
+				System.err.println(parentTransaction.toString());
 				
 				//check the output of a parent transaction corresponds to the sender
 				if(parentTransaction.getRecieverKey(parentOutputIndex).equals(senderPub)) {
 					verifiedAmount += parentTransaction.getOutputAmount(parentOutputIndex);
 				} else {
-					System.err.println("One or more transaction inputs are invalid.");
+					System.err.println("One or more transaction inputs are invalid. 1");
 					return false;
 				}
 			} catch (NullPointerException e) {
-				System.err.println("One or more transaction inputs are invalid.");
+				e.printStackTrace();
+				System.err.println("One or more transaction inputs are invalid. 2");
 				return false;
 			}
 		}
