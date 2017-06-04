@@ -260,8 +260,7 @@ public class Miner {
 		}
 	}
 
-	private boolean validTransaction(Transaction transaction, PublicKey publicKey) {
-		PublicKey senderPub = publicKey;
+	private boolean validTransaction(Transaction transaction, PublicKey senderPub) {
 		PublicKey parentOutPub = null;
 		PublicKey receiverPub = null;
 
@@ -304,8 +303,9 @@ public class Miner {
 		for (int i = 0; i < transaction.getOutputCount(); i++) {
 			targetAmount += transaction.getOutputAmount(i);
 		}
-
+		
 		if (targetAmount <= verifiedAmount && targetAmount >= 0.0) {
+			transaction.addOut(targetAmount-verifiedAmount, senderPub);
 			return true;
 		}
 		return false;

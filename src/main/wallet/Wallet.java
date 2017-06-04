@@ -128,7 +128,6 @@ public class Wallet {
 			t.addInput(parTransHashes.get(i), parTransIndexs.get(i));
 		}
 		t.addOut(dAmount, receiverKey);
-		t.addOut(total - dAmount, myKey);
 		
 		PrivateKey privateKey = null;
 		try {
