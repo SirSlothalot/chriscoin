@@ -129,15 +129,15 @@ public class Miner {
 			e.printStackTrace();
 		}
 		Block genesisBlock = new Block();
-		HashMap<byte[], Transaction> map = genesisBlock.addTransaction(genesisTrans);
+		genesisBlock.addTransaction(genesisTrans);
 
-		System.out.println(Hasher.bytesToHex(map.keySet().iterator().next()));
-		try {
-			System.out.println(Hasher.bytesToHex(Hasher.hash(genesisTrans)) + map.get(Hasher.hash(genesisTrans)));
-		} catch (NoSuchAlgorithmException | IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+//		System.out.println(Hasher.bytesToHex(map.keySet().iterator().next()));
+//		try {
+//			System.out.println(Hasher.bytesToHex(Hasher.hash(genesisTrans)) + map.get(Hasher.hash(genesisTrans)));
+//		} catch (NoSuchAlgorithmException | IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
 
 		try {
 			genesisBlock.genHeader(null, proof(genesisBlock, 1), 1);
@@ -283,7 +283,7 @@ public class Miner {
 				parentBlock = blockChain.findBlock(parentTransactionHash);
 				System.err.println(parentBlock.toString());
 				parentTransaction = parentBlock.getTransaction(parentTransactionHash);
-				System.err.println(parentTransaction.toString());
+//				System.err.println(parentTransaction.toString());
 
 				// check the output of a parent transaction corresponds to the
 				// sender

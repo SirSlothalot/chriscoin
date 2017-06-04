@@ -9,10 +9,10 @@ public class Block implements Serializable {
 
 	private BlockHeader blockHeader;
 	private int transactionCount;
-	private HashMap<byte[], Transaction> transactions;
+	private HashMap<String, Transaction> transactions;
 
 	public Block() {
-		transactions = new HashMap<byte[], Transaction>();
+		transactions = new HashMap<String, Transaction>();
 		transactionCount = 0;
 	}
 
@@ -27,7 +27,7 @@ public class Block implements Serializable {
 
 	}
 
-	public HashMap<byte[], Transaction> addTransaction(Transaction trans) {
+	public HashMap<String, Transaction> addTransaction(Transaction trans) {
 		byte[] transHash = null;
 		Transaction tra = trans;
 		try {
@@ -35,7 +35,8 @@ public class Block implements Serializable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		transactions.put(transHash, tra);
+		String str = new String(transHash);
+		transactions.put(str, tra);
 		transactionCount++;
 		return transactions;
 	}
@@ -52,16 +53,18 @@ public class Block implements Serializable {
 		return transactionCount;
 	}
 
-	public HashMap<byte[], Transaction> getTransactions() {
+	public HashMap<String, Transaction> getTransactions() {
 		return transactions;
 	}
 
 	public boolean hasTransaction(byte[] transHash) {
-		return transactions.containsKey(transHash);
+		String str = new String(transHash);
+		return transactions.containsKey(str);
 	}
 	
 	public Transaction getTransaction(byte[] transHash) {
-		return transactions.get(transHash);
+		String str = new String(transHash);
+		return transactions.get(str);
 	}
 	
 	@Override
